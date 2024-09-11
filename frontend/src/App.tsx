@@ -1,24 +1,23 @@
 import "./App.css";
-import { Button } from "./components/ui/button";
-import { Calendar } from "./components/ui/calendar";
+import Login from "./components/Auth/Login";
+import Home from "./Pages/Home";
+import Dashboard from "./Pages/Dashboard";
+import Layout from "./components/Layout/Layout"; // Asegúrate de que la ruta sea correcta
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import AdminDashboard from "./components/ComponentsMainDashboard/AdminDashboard";
 
 function App() {
   return (
-    <>
-      <div className="mb-5">
-        <h1>Vite + React</h1>
-
-        <p className="read-the-docs">
-          Click on the Vite and React logos to learn more
-        </p>
-      </div>
-
-      <div className="">
-        <h2>Calendario y button</h2>
-        <Button>Mi button de shadcn</Button>
-        <Calendar />
-      </div>
-    </>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        {/* Envuelve las rutas protegidas con Layout */}
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 }
 
