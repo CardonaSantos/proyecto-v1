@@ -1,18 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import {
+  Menu,
+  X,
+  Home,
+  Info,
+  Mail,
+  Bell,
+  ChevronDown,
+  User,
+  Settings,
+  LogOut,
+  User2,
+  Users2Icon,
+  HandCoins,
+  BookUser,
+} from "lucide-react";
 import { Button } from "../ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { Link, Outlet } from "react-router-dom";
+import { ModeToggle } from "../ButtonToggleDarkMode";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
-import { ScrollArea } from "../ui/scroll-area";
 import {
   Dialog,
   DialogContent,
@@ -21,242 +35,243 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
-import {
-  MenuIcon,
-  BellIcon,
-  SettingsIcon,
-  LogOutIcon,
-  UserIcon,
-  XIcon,
-} from "lucide-react";
-import { Outlet } from "react-router-dom";
-import { ModeToggle } from "../ButtonToggleDarkMode";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../ui/collapsible";
 
-const user = {
-  name: "Admin V1",
-  email: "admin@gmail.com",
-  image: "/placeholder.svg?height=32&width=32",
-};
+import logo from "../../assets/images/logo.png";
 
-const notifications = [
-  {
-    id: 1,
-    title: "Solicitud de Descuento",
-    content:
-      "El vendedor Alberto Jesus esta solicitando un descuento del 12% para el cliente Mari Mileidy Camposeco",
-  },
-  {
-    id: 2,
-    title: "Registro de entrada",
-    content: "El empleado Elizabeth R. se ha registrado",
-  },
-  {
-    id: 3,
-    title: "Registro de salida",
-    content: "El empleado Fernanda M. ha registrado su salida",
-  },
-];
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const [isOpen, setIsOpen] = useState(false);
 
-export default function AppLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const menuItems = [
+    {
+      href: "/",
+      icon: Home,
+      label: "Home",
+    },
+    {
+      href: "/clientes",
+      icon: User2,
+      label: "Clientes",
+    },
+    {
+      href: "/ventas",
+      icon: HandCoins,
+      label: "Ventas",
+    },
+    {
+      href: "/usuarios",
+      icon: Users2Icon,
+      label: "Usuarios",
+    },
+    {
+      href: "/empleados",
+      icon: BookUser,
+      label: "Empleados",
+    },
+    {
+      label: "Services",
+      icon: Settings,
+      subItems: [
+        { href: "/services/web", label: "Web Development" },
+        { href: "/services/mobile", label: "Mobile Development" },
+        { href: "/services/design", label: "Design" },
+      ],
+    },
+  ];
+
+  const notifications = [
+    { id: 1, message: "New message received" },
+    { id: 2, message: "Your order has been shipped" },
+    { id: 3, message: "Payment successful" },
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Top Toolbar */}
-      <header className="sticky top-0 z-40 w-full border-b bg-background">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex gap-6 md:gap-10">
-            <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-4 py-2 text-base hover:bg-transparent focus:ring-0 flex items-center justify-center"
-                >
-                  <MenuIcon className="h-7 w-7" />{" "}
-                  {/* Aumenta el tamaño del icono si es necesario */}
-                  <span className="sr-only">Toggle Menu</span>
-                </Button>
-              </SheetTrigger>
-
-              <SheetContent side="left" className="w-[300px] sm:w-[400px]">
-                <nav className="flex flex-col space-y-4">
-                  <h2 className="text-lg font-semibold">Menú</h2>
-                  <ScrollArea className="h-[calc(100vh-8rem)] pb-10">
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="dashboard">
-                        <AccordionTrigger className="w-full mb-1 justify-start text-black dark:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:border-transparent">
-                          Dashboard
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start pl-4"
-                          >
-                            General
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start pl-4"
-                          >
-                            Analytics
-                          </Button>
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="projects">
-                        <AccordionTrigger className="w-full mb-1 justify-start text-black dark:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:border-transparent">
-                          Ventas
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start pl-4"
-                          >
-                            Historial
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start pl-4"
-                          >
-                            Otros
-                          </Button>
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="tasks">
-                        <AccordionTrigger className="w-full mb-1 justify-start text-black dark:text-white bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:border-transparent">
-                          Empleados
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start pl-4"
-                          >
-                            Lista y Activos
-                          </Button>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start pl-4"
-                          >
-                            Rastreo
-                          </Button>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start mt-2"
-                    >
-                      Otro
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start">
-                      Reportes
-                    </Button>
-                  </ScrollArea>
-                </nav>
-              </SheetContent>
-            </Sheet>
-            <a href="/" className="flex items-center space-x-2">
-              <span className="inline-block font-bold">Sistema V1</span>
-            </a>
+    <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar for larger screens */}
+      <aside className="hidden w-64 border-r bg-gray-100/40 dark:bg-gray-800/50 lg:block">
+        <nav className="flex h-full flex-col">
+          <div className="flex h-14 items-center border-b px-4 bg-gray-200 dark:bg-gray-900">
+            <Link to={"/"}>
+              <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Sistema V1
+              </h1>
+            </Link>
+            <Link to={"/"}>
+              <img src={logo} alt="myLogo" width={60} />
+            </Link>
           </div>
-          <div className="flex items-center space-x-4">
-            <nav className="flex items-center  space-x-4">
-              <Dialog
-                open={isNotificationsOpen}
-                onOpenChange={setIsNotificationsOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="relative">
-                    <BellIcon className="h-5 w-5" />
-                    <span className="sr-only">Notificaciones</span>
-                    <span className="absolute top-0 right-0 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-                      {notifications.length}
-                    </span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Notificaciones</DialogTitle>
-                  </DialogHeader>
-                  <ScrollArea className="h-[300px] w-full">
-                    {notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className="mb-4 last:mb-0 p-2 hover:bg-accent rounded-md"
-                      >
-                        <h3 className="font-semibold">{notification.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {notification.content}
-                        </p>
+
+          <ul className="flex-1 space-y-1 p-4">
+            {menuItems.map((item, index) => (
+              <li key={index}>
+                {item.subItems ? (
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-200 dark:bg-gray-800">
+                      <div className="flex items-center space-x-3">
+                        <item.icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                        <span>{item.label}</span>
                       </div>
-                    ))}
-                  </ScrollArea>
-                </DialogContent>
-              </Dialog>
-              <ModeToggle />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
+                      <ChevronDown className="h-4 w-4" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="smooth-scroll bg-gray-100 dark:bg-gray-900">
+                      <ul className="ml-6 mt-2 space-y-1">
+                        {item.subItems.map((subItem, subIndex) => (
+                          <li key={subIndex}>
+                            <a
+                              href={subItem.href}
+                              className="block rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                            >
+                              {subItem.label}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ) : (
+                  <a
+                    href={item.href}
+                    className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
                   >
-                    <Avatar className="h-12 w-12">
-                      {" "}
-                      {/* Aumenta el tamaño aquí */}
-                      <AvatarImage
-                        sizes="lg"
-                        src="https://i.pinimg.com/564x/42/68/0e/42680efba1697034c1590d881072b0d7.jpg"
-                        alt={user.name}
-                      />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {user.name}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <UserIcon className="mr-2 h-4 w-4" />
-                    <span>Perfil</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <SettingsIcon className="mr-2 h-4 w-4" />
-                    <span>Config</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <LogOutIcon className="mr-2 h-4 w-4" />
-                    <span>Cerrar Sesión</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </nav>
-          </div>
-        </div>
-      </header>
+                    <item.icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                    <span>{item.label}</span>
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
 
-      {/* Main Content */}
-      <main className="flex-1">
-        <div className="container">
-          <Outlet />
-        </div>
-      </main>
+          <div className="flex justify-center p-4 bg-gray-200 dark:bg-gray-900">
+            <ModeToggle />
+          </div>
+        </nav>
+      </aside>
+
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Header for mobile and desktop */}
+        <header className="flex h-14 items-center border-b px-4">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="default"
+                className="mr-4 lg:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0">
+              <div className="flex h-14 items-center border-b px-4">
+                <h1 className="text-lg font-semibold">Sistema V1</h1>
+              </div>
+              <nav className="flex h-full flex-col">
+                <ul className="flex-1 space-y-1 p-4">
+                  {menuItems.map((item, index) => (
+                    <li key={index}>
+                      {item.subItems ? (
+                        <Collapsible>
+                          <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900">
+                            <div className="flex items-center space-x-3">
+                              <item.icon className="h-5 w-5" />
+                              <span>{item.label}</span>
+                            </div>
+                            <ChevronDown className="h-4 w-4" />
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <ul className="ml-6 mt-2 space-y-1">
+                              {item.subItems.map((subItem, subIndex) => (
+                                <li key={subIndex}>
+                                  <a
+                                    href={subItem.href}
+                                    className="block rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    onClick={() => setIsOpen(false)}
+                                  >
+                                    {subItem.label}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      ) : (
+                        <a
+                          href={item.href}
+                          className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span>{item.label}</span>
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            </SheetContent>
+          </Sheet>
+          <h1 className="text-lg font-semibold lg:hidden">My App</h1>
+          <div className="ml-auto flex items-center space-x-4">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="default">
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Notifications</DialogTitle>
+                </DialogHeader>
+                <ul className="space-y-2">
+                  {notifications.map((notification) => (
+                    <li
+                      key={notification.id}
+                      className="p-2 bg-gray-100 dark:bg-gray-800 rounded"
+                    >
+                      {notification.message}
+                    </li>
+                  ))}
+                </ul>
+              </DialogContent>
+            </Dialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="default">
+                  <User className="h-5 w-5" />
+                  <span className="sr-only">User menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <ModeToggle />
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-y-auto p-4">
+          <div className="mx-auto max-w-4xl">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

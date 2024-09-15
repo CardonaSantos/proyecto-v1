@@ -1,10 +1,3 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
 /* El efecto de sombra en el logo puede interferir con el estilo de los componentes */
 .logo:hover {
   /* Puedes ajustar o eliminar el filtro si es necesario */

@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Usuario {
+  id                    Int              @id @default(autoincrement())
+  nombre                String
+  correo                String           @unique
+  contrasena            String
+  rol                   Rol
+  ubicaciones           Ubicacion[]
+  citas                 Cita[]           @relation("CitasUsuario")
+  ventas                Venta[]
+  solicitudesDescuento  SolicitudDescuento[]
+  notificacionesEnviadas Notificacion[]  @relation("NotificacionesEnviadas")
+  notificacionesRecibidas Notificacion[] @relation("NotificacionesRecibidas")
+  registrosAsistencia   Asistencia[]
+
+  creadoEn              DateTime         @default(now())
+  actualizadoEn         DateTime         @updatedAt
+}
+
+model Ubicacion {
+  id        Int      @id @default(autoincrement())
+  latitud   Float
+  longitud  Float
+  timestamp DateTime @default(now())
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId Int
+}
+
+model Cliente {
+  id                 Int                 @id @default(autoincrement())
+  nombre             String
+  correo             String              @unique
+  telefono           String
+  direccion          String
+  ventas             Venta[]
+  citas              Cita[]
+  solicitudesDescuento SolicitudDescuento[]
+  creadoEn           DateTime            @default(now())
+  actualizadoEn      DateTime            @updatedAt
+}
+
+model Cita {
+  id           Int      @id @default(autoincrement())
+  inicio       DateTime
+  fin          DateTime?
+  activa       Boolean  @default(true)
+  vendedor     Usuario  @relation("CitasUsuario", fields: [usuarioId], references: [id])
+  usuarioId    Int
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId    Int
+  reporte      String?
+  venta        Venta?
+}
+
+
+model Producto {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  descripcion String?
+  precio      Float
+  stock       Int
+  ventas      Venta[]  @relation("VentasProducto")
+
+  creadoEn    DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
+
+model Venta {
+  id           Int      @id @default(autoincrement())
+  monto        Float
+  producto     String
+  timestamp    DateTime @default(now())
+  vendedor     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId    Int
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId    Int
+  cita         Cita?    @relation(fields: [citaId], references: [id])
+  citaId       Int?     @unique
+  productos   Producto[] @relation("VentasProducto")
+}
+
+
+
+
+model SolicitudDescuento {
+  id           Int      @id @default(autoincrement())
+  porcentaje   Float
+  estado       String   @default("pendiente")
+  vendedor     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId    Int
+  cliente      Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId    Int
+  creadoEn     DateTime @default(now())
+}
+
+model Notificacion {
+  id              Int      @id @default(autoincrement())
+  mensaje         String
+  leido           Boolean  @default(false)
+  remitente       Usuario  @relation("NotificacionesEnviadas", fields: [remitenteId], references: [id])
+  remitenteId     Int
+  destinatario    Usuario  @relation("NotificacionesRecibidas", fields: [destinatarioId], references: [id])
+  destinatarioId  Int
+  creadoEn        DateTime @default(now())
+}
+
+model Asistencia {
+  id              Int      @id @default(autoincrement())
+  entrada         DateTime
+  salida          DateTime?
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId       Int
+}
+
+enum Rol {
+  ADMIN
+  VENDEDOR
+}

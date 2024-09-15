@@ -49,47 +49,53 @@ export default function Login() {
     }
   };
 
+  console.log(localStorage.getItem("authToken"));
+
   return (
-    <Card className="w-[350px] border-4">
-      <CardHeader>
-        <CardTitle>Login</CardTitle>
-        {/* <CardDescription>Ingrese su usuario</CardDescription> */}
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="Ingrese su email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              aria-invalid={errors.email ? "true" : "false"}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Ingrese su contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              aria-invalid={errors.password ? "true" : "false"}
-            />
-            {errors.password && (
-              <p className="text-sm text-red-500">{errors.password}</p>
-            )}
-          </div>
-          <Button type="submit" className="w-full">
-            Login
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="flex justify-center w-full">
+      {/* <Card className="w-[350px] border-4"> */}
+      {/* <Card className="w-full max-w-md md:max-w-2xl mx-auto"> */}
+      <Card className="w-full max-w-md md:max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Login</CardTitle>
+          {/* <CardDescription>Ingrese su usuario</CardDescription> */}
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Ingrese su email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={errors.email ? "true" : "false"}
+              />
+              {errors.email && (
+                <p className="text-sm text-red-500">{errors.email}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="Ingrese su contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={errors.password ? "true" : "false"}
+              />
+              {errors.password && (
+                <p className="text-sm text-red-500">{errors.password}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full">
+              Login
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
