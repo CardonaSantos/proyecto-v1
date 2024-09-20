@@ -26,7 +26,11 @@ export class AuthService {
 
   async loginUser(usuario: CreateAuthDto) {
     const payload = {
-      contrasena: usuario.contrasena,
+      // contrasena: usuario.contrasena,
+      nombre: usuario.nombre,
+      correo: usuario.correo,
+      rol: usuario.rol,
+
       sub: usuario.id,
     };
 

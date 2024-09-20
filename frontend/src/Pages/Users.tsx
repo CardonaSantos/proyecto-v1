@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -15,8 +15,31 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
+import axios from "axios";
+import { toast } from "sonner";
+import { UsersSystem } from "../Utils/Types/User";
 
 function Users() {
+  const [users, setUsers] = useState<UsersSystem>([]);
+
+  const getUsers = async () => {
+    try {
+      const response = await axios.get("http://localhost:3000/users/");
+      if (response.status === 200) {
+        setUsers(response.data);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.info("No hay usuarios en este momento");
+    }
+  };
+
+  useEffect(() => {
+    getUsers();
+  }, []);
+
+  console.log(users);
+
   return (
     <div className=" bg-gray-100 dark:bg-gray-900">
       <Card className="mt-8">
@@ -37,23 +60,28 @@ function Users() {
                 <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>admin123</TableCell>
-                <TableCell>admin@example.com</TableCell>
-                <TableCell>Admin</TableCell>
-                <TableCell>2023-05-15 14:30</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button variant="default" size="default">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="default" size="default">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-              {/* Add more rows as needed */}
-            </TableBody>
+            {users &&
+              users.map((user) => (
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{user.nombre}</TableCell>
+                    <TableCell>{user.correo}</TableCell>
+                    <TableCell>{user.rol}</TableCell>
+                    <TableCell>
+                      {new Date(user.creadoEn).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="flex gap-2">
+                      <Button variant="default" size="default">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="default" size="default">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                  {/* Add more rows as needed */}
+                </TableBody>
+              ))}
           </Table>
         </CardContent>
       </Card>

@@ -17,6 +17,13 @@ import Customers from "./Pages/Customers";
 import Users from "./Pages/Users";
 import Sales from "./Pages/Sales";
 import Employees from "./Pages/Employees";
+import DatesView from "./Pages/DatesView";
+import SellerHistory from "./Pages/SellerHistory";
+import CreateProduct from "./Pages/CreateProduct";
+import StockPage from "./Pages/StockPage";
+import ViewProducts from "./Pages/ViewProducts";
+import MakeSale from "./Pages/MakeSale";
+import HistorialVentas from "./Pages/SaleCard";
 
 function App() {
   return (
@@ -40,6 +47,19 @@ function App() {
             <Route path="/usuarios" element={<Users />} />
             <Route path="/ventas" element={<Sales />} />
             <Route path="/empleados" element={<Employees />} />
+            <Route path="/historial-citas" element={<DatesView />} />
+
+            <Route
+              path="/historial-empleados-check"
+              element={<SellerHistory />}
+            />
+            <Route path="/crear-productos" element={<CreateProduct />} />
+            <Route path="/asignar-stock" element={<StockPage />} />
+            <Route path="/ver-productos" element={<ViewProducts />} />
+
+            <Route path="/hacer-ventas" element={<MakeSale />} />
+
+            <Route path="/historial-ventas" element={<HistorialVentas />} />
 
             {/* <Route path="/dashboard" element={<AdminDashboard />} /> */}
           </Route>

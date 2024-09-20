@@ -69,33 +69,117 @@ model Cita {
 }
 
 
+
+
+model Categoria {
+  id         Int                 @id @default(autoincrement())
+  nombre     String
+  productos  ProductoCategoria[] // Relación a la tabla intermedia ProductoCategoria
+
+  creadoEn   DateTime            @default(now())
+  actualizadoEn DateTime         @updatedAt
+}
+
 model Producto {
-  id          Int      @id @default(autoincrement())
+  id          Int                @id @default(autoincrement())
   nombre      String
   descripcion String?
-  precio      Float
-  stock       Int
-  ventas      Venta[]  @relation("VentasProducto")
+  precio      Float              // Precio de venta del producto
+  stock       Stock?             // Relación uno a uno con Stock
+  categorias  ProductoCategoria[] // Relación a la tabla intermedia ProductoCategoria
+  ventas      VentaProducto[]    // Relación a la tabla intermedia VentaProducto
+  entregas    EntregaStockProducto[] // Relación a la tabla intermedia EntregaStockProducto
 
-  creadoEn    DateTime @default(now())
+  codigoProducto String          @unique// NUEVO A APLICAR
+  creadoEn    DateTime           @default(now())
+  actualizadoEn DateTime         @updatedAt
+}
+
+
+model ProductoCategoria {
+  id          Int        @id @default(autoincrement())
+  producto    Producto    @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId  Int
+  categoria   Categoria   @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  categoriaId Int
+
+  creadoEn    DateTime    @default(now())
+  actualizadoEn DateTime  @updatedAt
+}
+
+model EntregaStock {
+  id           Int                    @id @default(autoincrement())
+  proveedor    Proveedor               @relation(fields: [proveedorId], references: [id])
+  proveedorId  Int
+  timestamp    DateTime                @default(now()) // Fecha de la entrega
+  productos    EntregaStockProducto[]  // Relación con los productos entregados
+
+  creadoEn     DateTime                @default(now())
+  actualizadoEn DateTime               @updatedAt
+}
+
+model EntregaStockProducto {
+  id           Int        @id @default(autoincrement())
+  producto     Producto    @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId   Int
+  entregaStock EntregaStock @relation(fields: [entregaStockId], references: [id], onDelete: Cascade)
+  entregaStockId Int
+  cantidad     Int         // Cantidad de este producto en esta entrega
+  costoUnitario Float      // Costo por unidad de este producto en esta entrega
+}
+
+
+model Stock {
+  id          Int       @id @default(autoincrement())
+  producto    Producto   @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  productoId  Int        @unique
+  proveedor   Proveedor  @relation(fields: [proveedorId], references: [id])
+  proveedorId Int
+  cantidad    Int        // Cantidad total de este producto en stock
+  costoTotal  Float      // Costo total de adquisición de todos los productos en stock  creadoEn    DateTime   @default(now())
   actualizadoEn DateTime @updatedAt
 }
+
+
+model Proveedor {
+  id          Int       @id @default(autoincrement())
+  nombre      String
+  correo      String    @unique
+  telefono    String
+  direccion   String?
+  productos   Stock[]   // Relación con el stock de productos
+  entregas    EntregaStock[]  // Relación con las entregas de stock
+
+  creadoEn    DateTime  @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
 
 
 model Venta {
   id           Int      @id @default(autoincrement())
   monto        Float
-  producto     String
+  descuento     Int//NUEVO A APLICAR
   timestamp    DateTime @default(now())
   vendedor     Usuario  @relation(fields: [usuarioId], references: [id])
   usuarioId    Int
   cliente      Cliente  @relation(fields: [clienteId], references: [id])
   clienteId    Int
-  cita         Cita?    @relation(fields: [citaId], references: [id])
+  cita         Cita?    @relation(fields: [citaId], references: [id])//si se realizó en una cita
   citaId       Int?     @unique
-  productos   Producto[] @relation("VentasProducto")
+  productos    VentaProducto[]  // Relación a la tabla intermedia VentaProducto
 }
 
+model VentaProducto {
+  id          Int      @id @default(autoincrement())
+  producto    Producto  @relation(fields: [productoId], references: [id], onDelete: Cascade) // Añadir Cascade aquí
+  productoId  Int
+  venta       Venta     @relation(fields: [ventaId], references: [id], onDelete: Cascade) // Si también necesitas eliminar las ventas asociadas
+  ventaId     Int
+  cantidad    Int
+  precio      Float
+  creadoEn    DateTime  @default(now())
+}
 
 
 

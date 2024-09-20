@@ -30,22 +30,21 @@ export class UsersController {
     const NewUser = await this.usersService.createUser(createUserDto);
 
     // return this.usersService.createUser(createUserDto);
-    return this.authService.loginUser(NewUser);
+    return await this.authService.loginUser(NewUser);
   }
 
   //BUSCAR TODOS
-
   @Get('')
   @UsePipes(new ValidationPipe())
-  findAllUsers() {
-    return this.usersService.findAllUsers();
+  async findAllUsers() {
+    return await this.usersService.findAllUsers();
   }
 
   //BUSCAR UNO
   @Get(':id')
   @UsePipes(new ValidationPipe())
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.findOneUser(id);
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.usersService.findOneUser(id);
   }
 
   // @Get('greet')
@@ -57,15 +56,20 @@ export class UsersController {
 
   @Patch(':id')
   @UsePipes(new ValidationPipe())
-  updateOne(
+  async updateOne(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.updateOneUser(id, updateUserDto);
+    return await this.usersService.updateOneUser(id, updateUserDto);
   }
 
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.removeOneUser(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    return await this.usersService.removeOneUser(id);
+  }
+
+  @Delete('/delete-all')
+  async deleteAllUSers() {
+    return await this.usersService.deleteAllUsers();
   }
 }

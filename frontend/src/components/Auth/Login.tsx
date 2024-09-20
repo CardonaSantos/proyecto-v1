@@ -11,8 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import axios from "axios";
+
+import { useNavigate } from "react-router-dom";
+import { toast, Toaster } from "sonner";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({
@@ -45,20 +50,35 @@ export default function Login() {
 
     if (Object.values(newErrors).every((error) => error === "")) {
       // Aquí enviarías los datos al backend
-      console.log("Form is valid, submitting...", { email, password });
+      loginUser();
+    }
+  };
+
+  const loginUser = async () => {
+    try {
+      const response = await axios.post("http://localhost:3000/auth/login", {
+        correo: email,
+        contrasena: password,
+      });
+
+      if (response.status === 201) {
+        localStorage.setItem("authToken", response.data.authToken);
+        toast.success("Usuario logueado");
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
   console.log(localStorage.getItem("authToken"));
 
   return (
-    <div className="flex justify-center w-full">
-      {/* <Card className="w-[350px] border-4"> */}
-      {/* <Card className="w-full max-w-md md:max-w-2xl mx-auto"> */}
+    <div className="flex items-center justify-center min-h-screen w-full">
+      <Toaster position="top-right" />
       <Card className="w-full max-w-md md:max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Login</CardTitle>
-          {/* <CardDescription>Ingrese su usuario</CardDescription> */}
+          <CardTitle className="text-center">Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

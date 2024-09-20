@@ -86,7 +86,7 @@ export default function CreateUser() {
   };
 
   return (
-    <div className="flex justify-center w-full">
+    <div className="flex items-center justify-center min-h-screen w-full">
       <Card className="w-full max-w-md md:max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Registro de Usuario</CardTitle>
@@ -127,10 +127,12 @@ export default function CreateUser() {
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="contrasena">Comprobar contraseña</Label>
+                <Label htmlFor="comprobarContrasena">
+                  Comprobar contraseña
+                </Label>
                 <Input
-                  // id="contrasena"
-                  // name="contrasena"
+                  id="comprobarContrasena"
+                  name="comprobarContrasena"
                   type="password"
                   required
                   onChange={(e) => setComprobarContraseña(e.target.value)}

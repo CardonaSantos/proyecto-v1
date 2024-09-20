@@ -17,8 +17,10 @@ export class UsersService {
       const NewUser = await this.prisma.usuario.create({
         data: { ...createUserDto, contrasena: hashedPassword },
       });
+
       // const newUser = await this.prisma.usuario.create({ data: createUserDto });
       console.log('usuario creado exitosamente');
+      console.log(NewUser);
 
       return NewUser;
     } catch (error) {
@@ -87,6 +89,16 @@ export class UsersService {
     } catch (error) {
       console.log(error);
       throw new NotFoundException('Usuario no encontrado');
+    }
+  }
+
+  async deleteAllUsers() {
+    try {
+      const usersToDelete = await this.prisma.usuario.deleteMany({});
+      return usersToDelete;
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException('Error al eliminar ususarios');
     }
   }
 }

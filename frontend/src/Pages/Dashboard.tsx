@@ -46,6 +46,10 @@ import {
   DialogTrigger,
 } from "../components/ui/dialog";
 import MyLeafletMap from "../components/Map/Map";
+import { Badge } from "../components/ui/badge";
+import { Link } from "react-router-dom";
+
+import { jwtDecode } from "jwt-decode";
 
 export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -58,6 +62,78 @@ export default function Dashboard() {
     { lat: 15.6532, lng: -91.7697, name: "Carlos Ed." },
     { lat: 15.6549, lng: -91.7727, name: "Faustina" },
   ];
+
+  const employeesData = [
+    {
+      id: 1,
+      name: "Alberto Jesús",
+      location: { lat: 15.6646, lng: -91.7121 },
+      status: "active",
+      checkIn: "08:30",
+      checkOut: "",
+      currentAppointment: {
+        client: "Empresa XYZ",
+        startTime: "09:30",
+        endTime: "",
+      },
+    },
+    {
+      id: 2,
+      name: "Mari Mileidy",
+      location: { lat: 15.6684, lng: -91.7104 },
+      status: "inactive",
+      checkIn: "07:45",
+      checkOut: "16:30",
+      currentAppointment: null,
+    },
+    {
+      id: 3,
+      name: "Elizabeth R.",
+      location: { lat: 15.6653, lng: -91.70697 },
+      status: "active",
+      checkIn: "09:00",
+      checkOut: "",
+      currentAppointment: {
+        client: "Tienda Local",
+        startTime: "10:30",
+        endTime: "",
+      },
+    },
+    {
+      id: 4,
+      name: "Fernanda M.",
+      location: { lat: 15.6611, lng: -91.7052 },
+      status: "inactive",
+      checkIn: "08:15",
+      checkOut: "17:00",
+      currentAppointment: null,
+    },
+    {
+      id: 5,
+      name: "Carlos Ed.",
+      location: { lat: 15.6532, lng: -91.7697 },
+      status: "active",
+      checkIn: "06:50",
+      checkOut: "",
+      currentAppointment: {
+        client: "Restaurante La Paz",
+        startTime: "09:00",
+        endTime: "",
+      },
+    },
+    {
+      id: 6,
+      name: "Faustina",
+      location: { lat: 15.6549, lng: -91.7727 },
+      status: "inactive",
+      checkIn: "07:30",
+      checkOut: "15:45",
+      currentAppointment: null,
+    },
+  ];
+
+  // const token = localStorage.getItem("authToken");
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Header */}
@@ -69,14 +145,14 @@ export default function Dashboard() {
             </h1>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            {/* <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
                 type="search"
                 placeholder="Buscar"
                 className="pl-10 w-full md:w-64"
               />
-            </div>
+            </div> */}
             <Dialog
               open={showNotifications}
               onOpenChange={setShowNotifications}
@@ -153,6 +229,43 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Discount Requests Section */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Solicitudes de Descuento</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Vendedor</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Descuento solicitado</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Carlos Rodríguez</TableCell>
+                  <TableCell>Empresa XYZ</TableCell>
+                  <TableCell>15%</TableCell>
+                  <TableCell>Pendiente</TableCell>
+                  <TableCell>
+                    <Button variant="outline" size="sm" className="mr-2">
+                      Aprobar
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Rechazar
+                    </Button>
+                  </TableCell>
+                </TableRow>
+                {/* Add more rows as needed */}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
         {/* Sales Section */}
         <Card className="mt-8">
           <CardHeader>
@@ -194,7 +307,7 @@ export default function Dashboard() {
                   <TableHead>Mes</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Ventas</TableHead>
-                  <TableHead>Profit</TableHead>
+                  {/* <TableHead>Profit</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -202,19 +315,19 @@ export default function Dashboard() {
                   <TableCell>Enero</TableCell>
                   <TableCell>Q10,000</TableCell>
                   <TableCell>100</TableCell>
-                  <TableCell>Q5,000</TableCell>
+                  {/* <TableCell>Q5,000</TableCell> */}
                 </TableRow>
                 <TableRow>
                   <TableCell>Febrero</TableCell>
                   <TableCell>Q12,000</TableCell>
                   <TableCell>120</TableCell>
-                  <TableCell>Q6,000</TableCell>
+                  {/* <TableCell>Q6,000</TableCell> */}
                 </TableRow>
                 <TableRow>
                   <TableCell>Marzo</TableCell>
                   <TableCell>Q15,000</TableCell>
                   <TableCell>150</TableCell>
-                  <TableCell>Q7,500</TableCell>
+                  {/* <TableCell>Q7,500</TableCell> */}
                 </TableRow>
               </TableBody>
             </Table>
@@ -227,10 +340,10 @@ export default function Dashboard() {
             <CardTitle>Empleados Activos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg mb-4">
+            <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 relative overflow-hidden">
               {/* Placeholder for map */}
               <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-                <MyLeafletMap locations={locations} />
+                <MyLeafletMap locations={employeesData} />
               </div>
             </div>
             <Table>
@@ -238,17 +351,45 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Ubicación</TableHead>
+                  <TableHead>Estado</TableHead>
+
                   <TableHead>Acción</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 <TableRow>
                   <TableCell>María González</TableCell>
-                  <TableCell>Oficina Central</TableCell>
                   <TableCell>
-                    <Button variant="outline" size="sm">
-                      Ver detalles
-                    </Button>
+                    <Badge variant="outline">
+                      <a
+                        href={`https://www.google.com/maps?q=15.6646,-91.7121`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center"
+                      >
+                        <MapPin className="w-4 h-4 mr-1" />
+                        15.6646, -91.7121
+                      </a>
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell>
+                    <Badge
+                      variant="default"
+                      className={
+                        "bg-green-500 text-white" // Para "Activo"
+                      }
+                    >
+                      Activo
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell>
+                    <Link to={"/empleados"}>
+                      <Button variant="outline" size="sm">
+                        Ver detalles
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
                 {/* Add more rows as needed */}
@@ -258,84 +399,9 @@ export default function Dashboard() {
         </Card>
 
         {/* User Management Section */}
-        <Card className="mt-8">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Gestión de Usuarios</CardTitle>
-            <Button variant="default" size="default">
-              <Plus className="mr-2 h-4 w-4" /> Agregar usuario
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre de usuario</TableHead>
-                  <TableHead>Correo electrónico</TableHead>
-                  <TableHead>Rol</TableHead>
-                  <TableHead>Última actividad</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>admin123</TableCell>
-                  <TableCell>admin@example.com</TableCell>
-                  <TableCell>Admin</TableCell>
-                  <TableCell>2023-05-15 14:30</TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button variant="default" size="default">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="default" size="default">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                {/* Add more rows as needed */}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
-        {/* Discount Requests Section */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Solicitudes de Descuento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Vendedor</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Descuento solicitado</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Carlos Rodríguez</TableCell>
-                  <TableCell>Empresa XYZ</TableCell>
-                  <TableCell>15%</TableCell>
-                  <TableCell>Pendiente</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" className="mr-2">
-                      Aprobar
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Rechazar
-                    </Button>
-                  </TableCell>
-                </TableRow>
-                {/* Add more rows as needed */}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
 
         {/* Reports Section */}
-        <Card className="mt-8">
+        {/* <Card className="mt-8">
           <CardHeader>
             <CardTitle>Reportes</CardTitle>
           </CardHeader>
@@ -356,7 +422,7 @@ export default function Dashboard() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </main>
 
       {/* Footer */}
@@ -377,7 +443,7 @@ export default function Dashboard() {
             </a>
           </nav>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            &copy; 2023 Tu Empresa. Todos los derechos reservados.
+            &copy; 2024 Sistema V1. Todos los derechos reservados.
           </p>
         </div>
       </footer>
