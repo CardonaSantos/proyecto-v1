@@ -1,6 +1,7 @@
 export interface Venta {
   id: number;
   monto: number;
+  descuento: number;
   timestamp: string;
   usuarioId: number;
   clienteId: number;

@@ -8,4 +8,4 @@ export interface User {
   actualizadoEn: string;
 }
 
-export type UsersSystem = User[];
+export type UsersSystem = User;

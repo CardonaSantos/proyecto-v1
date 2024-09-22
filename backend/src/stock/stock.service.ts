@@ -13,7 +13,10 @@ export class StockService {
   constructor(private readonly prisma: PrismaService) {}
 
   async addStock(createStockDto: CreateStockDto) {
+    console.log('Creando stock....');
+
     const { productos, proveedorId } = createStockDto;
+    console.log('Los datos recibidos son: ', proveedorId, productos);
 
     try {
       return await this.prisma.$transaction(async (prisma) => {

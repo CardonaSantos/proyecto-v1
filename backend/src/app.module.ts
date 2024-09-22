@@ -13,6 +13,7 @@ import { StockModule } from './stock/stock.module';
 import { ProviderModule } from './provider/provider.module';
 import { CategoriesModule } from './categories/categories.module';
 import { DeliveryStockModule } from './delivery-stock/delivery-stock.module';
+import { DiscountModule } from './discount/discount.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DeliveryStockModule } from './delivery-stock/delivery-stock.module';
     ProviderModule,
     CategoriesModule,
     DeliveryStockModule,
+    DiscountModule,
   ],
   controllers: [],
   providers: [],

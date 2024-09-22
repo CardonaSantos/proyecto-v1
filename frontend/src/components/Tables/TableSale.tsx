@@ -17,6 +17,17 @@ interface SalesTypeProp {
 }
 
 const TableSale: React.FC<SalesTypeProp> = ({ sales }) => {
+  if (!sales || sales.length === 0) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold mb-5 text-center">
+          Historial de Ventas
+        </h1>
+        <h2 className="text-center text-xl">No hay ventas que mostrar</h2>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-1">
       <h1 className="text-2xl font-bold mb-5 text-center">
@@ -86,7 +97,7 @@ const TableSale: React.FC<SalesTypeProp> = ({ sales }) => {
 
                   <div className="flex justify-between items-center font-semibold">
                     <span>Descuento:</span>
-                    <span>{venta.id} %</span>
+                    <span>{venta.descuento} %</span>
                   </div>
                   <div>
                     <h3 className="font-semibold">Vendedor</h3>

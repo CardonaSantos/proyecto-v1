@@ -24,12 +24,13 @@ import StockPage from "./Pages/StockPage";
 import ViewProducts from "./Pages/ViewProducts";
 import MakeSale from "./Pages/MakeSale";
 import HistorialVentas from "./Pages/SaleCard";
+import CheckInCheckOut from "./Pages/CheckInCheckOut";
 
 function App() {
   return (
     <>
       <Router>
-        <Toaster position="top-right" />
+        <Toaster position="top-right" duration={3000} />
 
         <Routes>
           {/* Redirige de "/" a "/dashboard" */}
@@ -49,6 +50,14 @@ function App() {
             <Route path="/empleados" element={<Employees />} />
             <Route path="/historial-citas" element={<DatesView />} />
 
+            {/* Nota: A la venta, en el flujo debemos marcar cita cuando empezamos, la cita, debemos tomar tiempo, si en la cita vendemos, debemos enviar informacion de la cita en la venta, y al revé<s></s>
+            Nota: configurar el horario
+            Nota: La cita debe marcar si vendimos en ella o no
+            Nota: Los checks de entrada debe marcar entrada, pero la salida debe marcarse al final, solucionar eso. 
+            
+            NOTA: MAÑANA TERMINAR EL CHECK, MOSTRAR INFO SOBRE LA ENTRADA MÁS RECIENTE,  Y OTROS
+            */}
+
             <Route
               path="/historial-empleados-check"
               element={<SellerHistory />}
@@ -60,6 +69,11 @@ function App() {
             <Route path="/hacer-ventas" element={<MakeSale />} />
 
             <Route path="/historial-ventas" element={<HistorialVentas />} />
+
+            <Route
+              path="/registrar-entrada-salida"
+              element={<CheckInCheckOut />}
+            />
 
             {/* <Route path="/dashboard" element={<AdminDashboard />} /> */}
           </Route>

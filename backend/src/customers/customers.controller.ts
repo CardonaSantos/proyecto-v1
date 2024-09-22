@@ -26,6 +26,11 @@ export class CustomersController {
     return await this.customersService.findAllCustomers();
   }
 
+  @Get('/all-customers-with-discount')
+  async findAllCustomersWithDiscount() {
+    return await this.customersService.findOneCustomersWithDiscount();
+  }
+
   @Get(':id')
   findOneCustomer(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.findOneCustomer(id);

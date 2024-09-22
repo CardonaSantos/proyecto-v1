@@ -15,12 +15,14 @@ export class ProductService {
     const { nombre, descripcion, precio, categoriaIds, codigoProducto } =
       createProductDto;
 
+    let precioInt = Number(precio);
+
     try {
       const product = await this.prisma.producto.create({
         data: {
           nombre,
           descripcion,
-          precio,
+          precio: precioInt,
           codigoProducto,
           categorias: {
             create: categoriaIds.map((categoriaId) => ({
@@ -32,6 +34,8 @@ export class ProductService {
           categorias: true,
         },
       });
+
+      console.log('Producto creado: ', product);
 
       return product;
     } catch (error) {

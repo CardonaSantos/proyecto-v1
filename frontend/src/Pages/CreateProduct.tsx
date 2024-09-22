@@ -40,6 +40,20 @@ export default function CreateProduct() {
     precioVenta: 0,
   });
 
+  let estadoInicial = {
+    nombre: "",
+    codigoProducto: "",
+    descripcion: "",
+    categoriaIds: [] as number[],
+    proveedor: "",
+    precio: 0,
+    precioVenta: 0,
+  };
+
+  const handleClean = () => {
+    setFormData(estadoInicial);
+  };
+
   const [showNewProveedorDialog, setShowNewProveedorDialog] = useState(false);
   const [newProveedor, setNewProveedor] = useState("");
   const [proveedores, setProveedores] = useState(proveedoresIniciales);
@@ -97,7 +111,7 @@ export default function CreateProduct() {
 
   const getCategories = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/categories/"); // Cambia esta URL si es necesario
+      const response = await axios.get("http://localhost:3000/categories/");
       if (response.status === 200) {
         setCategories(response.data);
       }
@@ -115,11 +129,9 @@ export default function CreateProduct() {
   const getCategoryNames = () => {
     return formData.categoriaIds
       .map((id) => categories.find((cat) => cat.id === id)?.nombre)
-      .filter(Boolean) // Eliminar cualquier valor nulo o undefined
+      .filter(Boolean)
       .join(", ");
   };
-
-  console.log(formData);
 
   return (
     <div className="container mx-auto p-4">
@@ -184,74 +196,12 @@ export default function CreateProduct() {
           </div>
 
           <div>
-            <Label htmlFor="proveedor">Proveedor</Label>
-            <div className="flex space-x-2">
-              <Select
-                onValueChange={(value) =>
-                  setFormData({ ...formData, proveedor: value })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecciona un proveedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  {proveedores.map((prov) => (
-                    <SelectItem key={prov} value={prov}>
-                      {prov}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Dialog
-                open={showNewProveedorDialog}
-                onOpenChange={setShowNewProveedorDialog}
-              >
-                <DialogTrigger asChild>
-                  <Button type="button" variant="outline">
-                    Nuevo
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Agregar Nuevo Proveedor</DialogTitle>
-                    <DialogDescription>
-                      Ingrese el nombre del nuevo proveedor
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Input
-                    value={newProveedor}
-                    onChange={(e) => setNewProveedor(e.target.value)}
-                    placeholder="Nombre del proveedor"
-                  />
-                  <DialogFooter>
-                    <Button type="button" onClick={addNewProveedor}>
-                      Agregar Proveedor
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="precio">Precio Costo</Label>
+            <Label htmlFor="precio">Precio de Venta</Label>
             <Input
               id="precio"
               name="precio"
               type="number"
-              value={Number(formData.precio)}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="precioVenta">Precio de venta sugerido</Label>
-            <Input
-              id="precioVenta"
-              name="precioVenta"
-              type="number"
-              value={formData.precioVenta}
+              value={formData.precio}
               onChange={handleChange}
               required
             />
@@ -259,8 +209,8 @@ export default function CreateProduct() {
 
           <div className="flex space-x-2">
             <Button type="submit">Crear producto</Button>
-            <Button type="button" variant="outline">
-              Cancelar
+            <Button type="button" variant="outline" onClick={handleClean}>
+              Limpiar
             </Button>
           </div>
         </form>
@@ -274,15 +224,18 @@ export default function CreateProduct() {
               {formData.nombre || "Nombre del producto"}
             </h3>
             <p className="text-sm text-gray-500">
-              Código: {formData.codigoProducto || "N/A"}
+              <strong>Código:</strong> {formData.codigoProducto || "N/A"}
             </p>
             <p className="mt-2">
-              {formData.descripcion || "Descripción del producto"}
+              <strong>Descripción del producto:</strong>{" "}
+              {formData.descripcion || "N/A"}
             </p>
-            <p className="mt-2">Categorías: {getCategoryNames() || "N/A"}</p>
-            <p>Proveedor: {formData.proveedor || "N/A"}</p>
-            <p className="mt-2">Costo base: Q{formData.precio || 0}</p>
-            <p>Precio de venta: Q{formData.precioVenta || 0}</p>
+            <p className="mt-2">
+              <strong>Categorías:</strong> {getCategoryNames() || "N/A"}
+            </p>
+            <p>
+              <strong>Precio de venta:</strong> Q{formData.precio || 0}
+            </p>
           </div>
         </div>
       </div>

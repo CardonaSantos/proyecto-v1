@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { Card, CardContent, CardFooter } from "../components/ui/card";
@@ -33,120 +33,285 @@ import {
   MoonIcon,
   SunIcon,
 } from "lucide-react";
+import { toast } from "sonner";
+import axios from "axios";
+import { CategoriaFiltrar } from "../Utils/Types/CategoyFilter";
+// import { Cliente, Descuento } from "../Utils/Types/CustomersWithDiscount";
+
+interface Producto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  creadoEn: string;
+  actualizadoEn: string;
+  codigoProducto: string;
+  stock: Stock | null;
+  categorias: Category[];
+}
+
+interface Stock {
+  id: number;
+  productoId: number;
+  cantidad: number;
+  proveedorId: number;
+  costo: number;
+  creadoEn: string;
+  actualizadoEn: string;
+}
+
+interface Category {
+  categoria: Categoria1;
+  creadoEn: string;
+}
+
+interface Categoria1 {
+  actualizadoEn: string;
+  id: number;
+  nombre: string;
+}
+
+interface Cliente {
+  id: number;
+  nombre: string;
+  correo: string;
+  telefono: string;
+  direccion: string;
+  creadoEn: string;
+  actualizadoEn: string;
+  descuentos: Descuento[];
+}
+
+interface Descuento {
+  id: number;
+  porcentaje: number;
+  clienteId: number;
+  activo: boolean;
+  creadoEn: string;
+  actualizadoEn: string;
+}
 
 export default function MakeSale() {
+  // Estados
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
-  const [cart, setCart] = useState([]);
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
-  const [selectedDiscount, setSelectedDiscount] = useState(null);
-  const [customDiscountRequested, setCustomDiscountRequested] = useState(false);
-  const [customDiscountPercentage, setCustomDiscountPercentage] = useState("");
-  const [orderNotes, setOrderNotes] = useState("");
+  const [products, setProducts] = useState<Producto[]>([]);
+  const [cart, setCart] = useState<(Producto & { quantity: number })[]>([]); // Agregamos `quantity` al estado del carrito
+  const [selectedCustomer, setSelectedCustomer] = useState<Cliente | null>(
+    null
+  );
+  const [selectedDiscount, setSelectedDiscount] = useState<Descuento | null>(
+    null
+  );
+  const [descuento, setDescuento] = useState<string>("");
+  const [nota, setNota] = useState<string>("");
+  const [customers, setCustomers] = useState<Cliente[]>([]);
+  const [categoria, setCategoria] = useState<CategoriaFiltrar[]>([]);
+
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  //   const { theme, setTheme } = useTheme();
+  const [showCartModal, setShowCartModal] = useState(false);
 
-  // Datos de ejemplo
-  const products = [
-    {
-      id: 1,
-      name: "Camiseta Básica",
-      code: "CB001",
-      category: "Camisetas",
-      colors: ["Blanco", "Negro"],
-      stock: 50,
-      price: 19.99,
-      image: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      id: 2,
-      name: "Pantalón Vaquero",
-      code: "PV002",
-      category: "Pantalones",
-      colors: ["Azul", "Negro"],
-      stock: 30,
-      price: 49.99,
-      image: "/placeholder.svg?height=100&width=100",
-    },
-    {
-      id: 3,
-      name: "Vestido Floral",
-      code: "VF003",
-      category: "Vestidos",
-      colors: ["Rojo", "Azul"],
-      stock: 20,
-      price: 39.99,
-      image: "/placeholder.svg?height=100&width=100",
-    },
-  ];
+  // Obtener productos
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/product/");
+        if (response.status === 200) {
+          setProducts(response.data);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("No hay productos disponibles");
+      }
+    };
 
-  const customers = [
-    { id: 1, name: "María García", discounts: [10, 5] },
-    { id: 2, name: "Juan Pérez", discounts: [15] },
-  ];
+    getProducts();
+  }, []);
 
-  const addToCart = (product) => {
-    setCart([...cart, { ...product, quantity: 1 }]);
+  // Obtener clientes
+  useEffect(() => {
+    const getCustomers = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/customers/all-customers-with-discount"
+        );
+        if (response.status === 200) {
+          setCustomers(response.data);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("No se encontraron clientes");
+      }
+    };
+
+    getCustomers();
+  }, []);
+
+  // Obtener clientes
+  useEffect(() => {
+    const getCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/categories/");
+        if (response.status === 200) {
+          setCategoria(response.data);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("No se encontraron clientes");
+      }
+    };
+
+    getCategories();
+  }, []);
+
+  console.log(categoria);
+
+  // Funciones de carrito
+  const addToCart = (product: Producto) => {
+    if (!product.stock || product.stock?.cantidad <= 0) {
+      //si es null o no tiene suficiente
+      toast.info("Stock insuficiente");
+      return;
+    }
+
+    const productoExistente = cart.some((prod) => prod.id === product.id);
+
+    if (productoExistente) {
+      toast.info("El objeto ya está en el carrito");
+      return;
+    }
+
+    setCart((prevCart) => [...prevCart, { ...product, quantity: 1 }]);
+    toast.success("Añadido al Carrito");
   };
 
-  const removeFromCart = (productId) => {
-    setCart(cart.filter((item) => item.id !== productId));
+  const removeFromCart = (productId: number) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
+    toast.success("Eliminado del Carrito");
   };
 
-  const updateQuantity = (productId, newQuantity) => {
-    setCart(
-      cart.map((item) =>
+  const updateQuantity = (productId: number, newQuantity: number) => {
+    if (newQuantity <= 0) return; // Evitar cantidades negativas
+    setCart((prevCart) =>
+      prevCart.map((item) =>
         item.id === productId ? { ...item, quantity: newQuantity } : item
       )
     );
   };
 
-  const requestCustomDiscount = () => {
-    setCustomDiscountRequested(true);
-    // Aquí iría la lógica para enviar la solicitud al administrador
+  // Calcular total
+  const calculateTotalConDescuento = () => {
+    const subtotal = cart.reduce(
+      (total, item) => total + item.precio * item.quantity,
+      0
+    );
+    const discountPercentage = selectedDiscount
+      ? selectedDiscount.porcentaje / 100
+      : 0;
+    return (subtotal * (1 - discountPercentage)).toFixed(2);
   };
 
   const calculateTotal = () => {
     const subtotal = cart.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + item.precio * item.quantity,
       0
     );
-    const discountPercentage = selectedDiscount ? selectedDiscount / 100 : 0;
-    return (subtotal * (1 - discountPercentage)).toFixed(2);
+    // const discountPercentage = selectedDiscount
+    //   ? selectedDiscount.porcentaje / 100
+    //   : 0;
+    return subtotal;
   };
 
+  // Filtrar productos
   const filteredProducts = products.filter(
     (product) =>
       (searchTerm === "" ||
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.code.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (selectedCategory === "Todas" || product.category === selectedCategory)
+        product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.codigoProducto
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())) &&
+      (selectedCategory === "Todas" ||
+        product.categorias.some(
+          (cat) => cat.categoria.nombre === selectedCategory
+        ))
   );
+
+  // Manejar solicitudes de descuento
+  const requestCustomDiscount = () => {
+    // Lógica para enviar la solicitud al administrador
+    setDescuento("");
+    setNota("");
+    toast.success("Solicitud de descuento enviada");
+  };
+
+  console.log(cart);
+
+  const formatoCartData = (cart: (Producto & { quantity: number })[]) => {
+    return {
+      monto: cart.reduce(
+        (total, item) => total + item.precio * item.quantity,
+        0
+      ), // Sumar el monto total
+      descuento: selectedDiscount?.porcentaje, // Ajusta esto según tu lógica
+      clienteId: selectedCustomer?.id, // Supongo que esto vendrá de algún lado, ajusta si es necesario
+      vendedorId: 17, // También ajusta según tu contexto
+      productos: cart.map((item) => ({
+        productoId: item.id, // Cambiar 'id' a 'productoId'
+        cantidad: item.quantity, // La cantidad de productos
+        precio: item.precio, // El precio del producto
+      })),
+    };
+  };
+
+  const clearCart = () => {
+    setCart([]); // Asume que estás usando `setCart` para actualizar el carrito
+  };
+  const sendCartData = async (cart) => {
+    const formateado = formatoCartData(cart);
+
+    console.log("La data a enviar es: ", formateado);
+
+    // Verifica que los campos requeridos estén completos
+    if (
+      !formateado.clienteId ||
+      typeof formateado.descuento === "undefined" || // Verifica si existe el descuento
+      typeof formateado.monto === "undefined" || // Verifica si existe el monto
+      !formateado.productos ||
+      !formateado.vendedorId
+    ) {
+      toast.info("Faltan campos sin llenar");
+      return;
+    }
+
+    try {
+      console.log(formateado);
+      const response = await axios.post(
+        "http://localhost:3000/sale/",
+        formateado
+      );
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Venta creada");
+        clearCart();
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error al crear venta");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto p-4">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Sistema de Ventas de Ropa</h1>
-          {/* <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <SunIcon className="h-5 w-5" />
-            ) : (
-              <MoonIcon className="h-5 w-5" />
-            )}
-          </Button> */}
+        <header className="flex justify-between items-center mb-2">
+          <h1 className="text-2xl font-bold">Hacer venta</h1>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className=" md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
+            {/* Filtros de búsqueda y categoría */}
             <Card className="mb-8">
               <CardContent>
                 <div className="flex items-center space-x-2 mb-4">
-                  <SearchIcon className="text-muted-foreground" />
                   <Input
                     type="text"
                     placeholder="Buscar productos por nombre o código"
@@ -155,285 +320,296 @@ export default function MakeSale() {
                     className="flex-grow"
                   />
                 </div>
-                <div className="flex flex-wrap gap-4">
-                  <Select
-                    value={selectedCategory}
-                    onValueChange={setSelectedCategory}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Categoría" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Todas">Todas</SelectItem>
-                      <SelectItem value="Camisetas">Camisetas</SelectItem>
-                      <SelectItem value="Pantalones">Pantalones</SelectItem>
-                      <SelectItem value="Vestidos">Vestidos</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredProducts.map((product) => (
-                <Card key={product.id}>
-                  <CardContent className="p-4">
-                    {/* <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-40 object-cover mb-4 rounded"
-                    /> */}
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {product.code}
-                    </p>
-                    <div className="flex flex-wrap gap-2 my-2">
-                      {/* {product.category.map((color) => ( */}
-                      <Badge key={product.id} variant="outline">
-                        {product.category}
-                      </Badge>
-                      {/* //   ))} */}
-                    </div>
-                    <p className="font-semibold mt-2">
-                      Q{product.price.toFixed(2)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Stock: {product.stock}
-                    </p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      onClick={() => addToCart(product)}
-                      disabled={product.stock === 0}
-                    >
-                      Añadir al Carrito
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Card className="mb-8">
-              <CardContent>
-                <h2 className="text-xl font-semibold mb-4">
-                  Carrito de Compras
-                </h2>
-                {cart.length === 0 ? (
-                  <p className="text-muted-foreground">El carrito está vacío</p>
-                ) : (
-                  <ScrollArea className="h-[300px]">
-                    {cart.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between mb-4"
-                      >
-                        <div className="flex items-center">
-                          <div>
-                            <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Q{item.price.toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center">
-                          <Input
-                            type="number"
-                            min="1"
-                            max={item.stock}
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateQuantity(item.id, parseInt(e.target.value))
-                            }
-                            className="w-16 mr-2"
-                          />
-                          <Button
-                            variant="destructive"
-                            size="default"
-                            onClick={() => removeFromCart(item.id)}
-                          >
-                            <XIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </ScrollArea>
-                )}
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <p className="font-semibold">Total:</p>
-                <p className="font-semibold">Q{calculateTotal()}</p>
-              </CardFooter>
-            </Card>
-
-            <Card className="mb-8">
-              <CardContent>
-                <h3 className="text-md font-semibold mb-4">
-                  Selección de Cliente
-                </h3>
                 <Select
-                  value={selectedCustomer?.id}
-                  onValueChange={(value) => {
-                    setSelectedCustomer(
-                      customers.find((c) => c.id === parseInt(value))
-                    );
-                    setSelectedDiscount(null);
-                  }}
+                  value={selectedCategory}
+                  onValueChange={setSelectedCategory}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Categoría" />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers.map((customer) => (
-                      <SelectItem
-                        key={customer.id}
-                        value={customer.id.toString()}
-                      >
-                        {customer.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="Todas">Todas</SelectItem>
+
+                    {categoria &&
+                      categoria.map((category) => (
+                        <SelectItem value={category.nombre}>
+                          {category.nombre}
+                        </SelectItem>
+                      ))}
+                    {/* <SelectItem value="Todas">Todas</SelectItem>
+                    <SelectItem value="Camisetas">Camisetas</SelectItem>
+                    <SelectItem value="Pantalones">Pantalones</SelectItem>
+                    <SelectItem value="Vestidos">Vestidos</SelectItem> */}
                   </SelectContent>
                 </Select>
-                {/* <h3 className="text-md font-semibold mb-4">Metódo de pago</h3>
-                <Select
-                  value={selectedCustomer?.id}
-                  onValueChange={(value) => {
-                    setSelectedCustomer(
-                      customers.find((c) => c.id === parseInt(value))
-                    );
-                    setSelectedDiscount(null);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar cliente" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Tarjeta">Tarjeta</SelectItem>
-                    <SelectItem value="Transferencia">Transferencia</SelectItem>
-                    <SelectItem value="Contado">Contado</SelectItem>
-                  </SelectContent>
-                </Select> */}
-                {selectedCustomer && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold mb-2">
-                      Descuentos disponibles:
-                    </h3>
-                    <Select
-                      value={selectedDiscount?.toString()}
-                      onValueChange={(value) =>
-                        setSelectedDiscount(parseInt(value))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar descuento" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {selectedCustomer.discounts.map((discount) => (
-                          <SelectItem
-                            key={discount}
-                            value={discount.toString()}
-                          >
-                            {discount}%
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="mt-4">
-                      <Label htmlFor="custom-discount">
-                        Solicitar descuento personalizado:
-                      </Label>
-                      <div className="flex items-center mt-2">
-                        <Input
-                          id="custom-discount"
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={customDiscountPercentage}
-                          onChange={(e) =>
-                            setCustomDiscountPercentage(e.target.value)
-                          }
-                          className="w-20 mr-2"
-                        />
-                        <span className="mr-2">%</span>
-                        <Button
-                          onClick={requestCustomDiscount}
-                          disabled={
-                            customDiscountRequested || !customDiscountPercentage
-                          }
-                        >
-                          Solicitar
-                        </Button>
-                      </div>
-                    </div>
-                    {customDiscountRequested && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Solicitud de descuento del {customDiscountPercentage}%
-                        enviada al administrador
+              </CardContent>
+            </Card>
+
+            <div className="mb-5">
+              <Button variant="outline" onClick={() => setShowCartModal(true)}>
+                <ShoppingCartIcon className="mr-2" />
+                Ver Carrito ({cart.length})
+              </Button>
+
+              <Dialog open={showCartModal} onOpenChange={setShowCartModal}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Carrito de Compras</DialogTitle>
+                    <DialogDescription>
+                      Estos son los productos que has añadido al carrito.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <ScrollArea className="h-[300px]">
+                    {cart.length === 0 ? (
+                      <p className="text-muted-foreground text-center">
+                        El carrito está vacío
                       </p>
+                    ) : (
+                      cart.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between mb-4"
+                        >
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold">{item.nombre}</p>
+                            <p>=</p>
+                            <p className="text-sm text-muted-foreground">
+                              Q{item.precio.toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="flex items-center">
+                            <Input
+                              type="number"
+                              min="1"
+                              max={item.stock?.cantidad}
+                              value={item.quantity}
+                              onChange={(e) =>
+                                updateQuantity(
+                                  item.id,
+                                  parseInt(e.target.value)
+                                )
+                              }
+                              className="w-16 mr-2"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeFromCart(item.id)}
+                            >
+                              <XIcon />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
                     )}
+                  </ScrollArea>
+                  <DialogFooter className="flex gap-10 justify-between items-center">
+                    <div className="space-y-2">
+                      <p className="font-semibold ">
+                        Total: Q{calculateTotal()}
+                      </p>
+                      <p className="font-semibold ">
+                        Total con descuento: Q{calculateTotalConDescuento()}
+                      </p>
+                      <p className="font-semibold ">
+                        Descuento:{" "}
+                        {selectedDiscount
+                          ? selectedDiscount?.porcentaje
+                          : "Descuento no seleccionado"}
+                        %
+                      </p>
+                      <p className="font-semibold ">
+                        Cliente: {selectedCustomer?.nombre}
+                      </p>
+                    </div>
+                    <div className="flex gap-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowCartModal(false)}
+                      >
+                        Cerrar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => sendCartData(cart)}
+                      >
+                        Hacer venta
+                      </Button>
+                    </div>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Resto de tu código (Selección de cliente, notas, etc.) */}
+            </div>
+            <div className="">
+              {/* Selección de Cliente */}
+              <Card className="mb-8">
+                <CardContent>
+                  <h3 className="text-md font-semibold mb-4">
+                    Selección de Cliente
+                  </h3>
+                  <Select
+                    value={selectedCustomer?.id?.toString() || ""}
+                    onValueChange={(value) => {
+                      const foundCustomer = customers.find(
+                        (c) => c.id === parseInt(value)
+                      );
+                      setSelectedCustomer(foundCustomer || null); // Set null if no customer is found
+                      setSelectedDiscount(null);
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar cliente" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {customers.map((customer) => (
+                        <SelectItem
+                          key={customer.id}
+                          value={customer.id.toString()}
+                        >
+                          {customer.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {selectedCustomer && (
+                    <div className="mt-4">
+                      <h3 className="font-semibold mb-2">
+                        Descuentos disponibles:
+                      </h3>
+                      <Select
+                        value={selectedDiscount?.id?.toString() || ""}
+                        onValueChange={(value) => {
+                          const discount = selectedCustomer.descuentos.find(
+                            (d) => d.id === parseInt(value)
+                          );
+                          setSelectedDiscount(discount || null);
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar descuento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {selectedCustomer &&
+                          selectedCustomer.descuentos.length > 0 ? (
+                            selectedCustomer.descuentos.map((discount) => (
+                              <SelectItem
+                                key={discount.id}
+                                value={discount.id.toString()}
+                              >
+                                {discount.porcentaje}%
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem disabled value="0">
+                              No hay descuentos disponibles
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="">
+              <Card className="mb-8">
+                <CardContent>
+                  <h3 className="text-md font-semibold mb-4">
+                    Solicitar Descuento
+                  </h3>
+                  <div className="flex items-center mb-4">
+                    <input
+                      className="bg-white dark:text-black border rounded-md p-2 w-32 mr-2"
+                      type="number"
+                      placeholder="Porcentaje"
+                      min="0"
+                      max="100"
+                      value={descuento}
+                      onChange={(e) => setDescuento(e.target.value)}
+                    />
+                    <span className="text-lg">%</span>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <Textarea
+                    placeholder="Notas sobre la solicitud (opcional)"
+                    onChange={(e) => setNota(e.target.value)}
+                    className="mb-4"
+                    value={nota}
+                  />
+                  <Button onClick={requestCustomDiscount} className="mt-2">
+                    Solicitar Descuento Personalizado
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Card className="mb-8">
-              <CardContent>
-                <h2 className="text-xl font-semibold mb-4">Notas de Pedido</h2>
-                <Textarea
-                  placeholder="Añadir notas al pedido..."
-                  value={orderNotes}
-                  onChange={(e) => setOrderNotes(e.target.value)}
-                />
-              </CardContent>
-            </Card>
-
-            <Button
-              className="w-full"
-              onClick={() => setShowConfirmModal(true)}
-              disabled={cart.length === 0}
-            >
-              Confirmar Venta
-            </Button>
+            {/* Productos filtrados */}
+            <ScrollArea className="h-[500px]">
+              {" "}
+              {/* Ajusta la altura según sea necesario */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProducts.map((product) => (
+                  <Card key={product.id}>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold">{product.nombre}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {product.codigoProducto}
+                      </p>
+                      <div className="flex flex-wrap gap-2 my-2">
+                        {product.categorias.map((cat) => (
+                          <Badge key={cat.categoria.id} variant="outline">
+                            {cat.categoria.nombre}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="font-semibold mt-2">
+                        Q{product.precio.toFixed(2)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Stock:{" "}
+                        {product.stock?.cantidad > 0 ? (
+                          <Badge key={product.id} variant="outline">
+                            {product.stock?.cantidad}
+                          </Badge>
+                        ) : (
+                          <Badge key={product.id} variant="destructive">
+                            Fuera de stock
+                          </Badge>
+                        )}
+                      </p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button
+                        onClick={() => addToCart(product)}
+                        disabled={product.stock?.cantidad === 0}
+                      >
+                        Añadir al Carrito
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
+
+          {/* Carrito de compras */}
         </div>
       </div>
 
+      {/* Modal de confirmación */}
       <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirmar Venta</DialogTitle>
             <DialogDescription>
-              <p className="m-2">
-                Por favor, revise los detalles de la venta antes de confirmar.
-                Está acción no se puede revertir
-              </p>
+              ¿Estás seguro de que deseas confirmar esta venta?
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <h3 className="font-semibold mb-2">Resumen de la Venta:</h3>
-            <ul className="list-disc list-inside">
-              {cart.map((item) => (
-                <li key={item.id}>
-                  {item.name} - {item.quantity}x Q{item.price.toFixed(2)}
-                </li>
-              ))}
-            </ul>
-            <p className="font-semibold mt-2">Total: Q{calculateTotal()}</p>
-            {selectedCustomer && (
-              <p className="mt-2">Cliente: {selectedCustomer.name}</p>
-            )}
-            {selectedDiscount && (
-              <p className="mt-2">Descuento aplicado: {selectedDiscount}%</p>
-            )}
-            {orderNotes && (
-              <div className="mt-2">
-                <p className="font-semibold">Notas:</p>
-                <p>{orderNotes}</p>
-              </div>
-            )}
-          </div>
-          <DialogFooter className="gap-2">
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowConfirmModal(false)}
@@ -442,18 +618,10 @@ export default function MakeSale() {
             </Button>
             <Button
               onClick={() => {
-                // Aquí iría la lógica para procesar la venta
                 setShowConfirmModal(false);
-                // Resetear el estado después de la venta
-                setCart([]);
-                setSelectedCustomer(null);
-                setSelectedDiscount(null);
-                setOrderNotes("");
-                setCustomDiscountRequested(false);
-                setCustomDiscountPercentage("");
               }}
             >
-              Confirmar Venta
+              Confirmar
             </Button>
           </DialogFooter>
         </DialogContent>

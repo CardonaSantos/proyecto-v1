@@ -159,7 +159,7 @@ export default function ViewProducts() {
                     : "Fuera de Stock (0)"}
                 </Badge>
               </CardContent>
-              <CardFooter className="bg-white p-4 flex justify-between">
+              <CardFooter className=" p-4 flex justify-between">
                 <Button
                   variant="outline"
                   size="sm"

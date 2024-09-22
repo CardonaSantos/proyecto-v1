@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AttendanceService } from './attendance.service';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { UpdateAttendanceDto } from './dto/update-attendance.dto';
@@ -7,28 +16,44 @@ import { UpdateAttendanceDto } from './dto/update-attendance.dto';
 export class AttendanceController {
   constructor(private readonly attendanceService: AttendanceService) {}
 
-  @Post()
-  create(@Body() createAttendanceDto: CreateAttendanceDto) {
-    return this.attendanceService.create(createAttendanceDto);
+  @Post('/check-in')
+  async createCheckin(@Body() createAttendanceDto: CreateAttendanceDto) {
+    return await this.attendanceService.createCheckIn(createAttendanceDto);
+  }
+
+  @Patch('/check-out/:id')
+  async createCheckout(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAttendanceDto: UpdateAttendanceDto,
+  ) {
+    return await this.attendanceService.createCheckOut(updateAttendanceDto, id);
   }
 
   @Get()
-  findAll() {
-    return this.attendanceService.findAll();
+  async findAll() {
+    return await this.attendanceService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attendanceService.findOne(+id);
+  @Get('/today-check/:id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    return await this.attendanceService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAttendanceDto: UpdateAttendanceDto) {
-    return this.attendanceService.update(+id, updateAttendanceDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateAttendanceDto: UpdateAttendanceDto,
+  ) {
+    return await this.attendanceService.update(+id, updateAttendanceDto);
+  }
+
+  @Delete('/delete-all')
+  async removeAll(@Param('id') id: string) {
+    return await this.attendanceService.removeAll();
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.attendanceService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.attendanceService.remove(+id);
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, MapPin, Download, Eye } from "lucide-react";
 import { Input } from "../components/ui/input";
 import {
@@ -20,64 +20,22 @@ import {
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Link } from "react-router-dom";
-
-// Datos de ejemplo
-const historial = [
-  {
-    id: 1,
-    vendedor: "Ana García",
-    fecha: "2023-06-10",
-    checkIn: "09:00",
-    checkOut: "17:00",
-    tiempoTotal: "8h",
-    estado: "inactivo",
-    ubicacionIn: "Oficina Central",
-    ubicacionOut: "Oficina Central",
-  },
-  {
-    id: 2,
-    vendedor: "Carlos Pérez",
-    fecha: "2023-06-10",
-    checkIn: "08:30",
-    checkOut: null,
-    tiempoTotal: "En curso",
-    estado: "activo",
-    ubicacionIn: "Sucursal Norte",
-    ubicacionOut: null,
-  },
-  {
-    id: 3,
-    vendedor: "María López",
-    fecha: "2023-06-11",
-    checkIn: "09:15",
-    checkOut: "18:15",
-    tiempoTotal: "9h",
-    estado: "inactivo",
-    ubicacionIn: "Oficina del Cliente",
-    ubicacionOut: "Oficina del Cliente",
-  },
-
-  {
-    id: 4,
-    vendedor: "María López",
-    fecha: "2024-06-11",
-    checkIn: "09:15",
-    checkOut: "18:15",
-    tiempoTotal: "9h",
-    estado: "inactivo",
-    ubicacionIn: "Oficina del Cliente",
-    ubicacionOut: "Oficina del Cliente",
-  },
-];
+import axios from "axios";
+import { Asistencias } from "../Utils/Types/Attendance";
+import { format, differenceInHours, differenceInMinutes } from "date-fns"; // Importar differenceInMinutes también
+import { es } from "date-fns/locale"; // Importar el idioma español
 
 export default function SellerHistory() {
+  const [assistencia, setAssistencia] = useState<Asistencias>([]);
+
   const [busqueda, setBusqueda] = useState("");
   const [estado, setEstado] = useState("todos");
   const [fechas, setFechas] = useState({ from: undefined, to: undefined }); // Cambiar null a undefined
 
-  const historialFiltrado = historial.filter((registro) => {
+  // Filtrado del historial según búsqueda, estado y fechas
+  const historialFiltrado = assistencia.filter((registro) => {
     const fechaRegistro = new Date(registro.fecha);
-    const coincideNombre = registro.vendedor
+    const coincideNombre = registro.usuario.nombre
       .toLowerCase()
       .includes(busqueda.toLowerCase());
     const coincideEstado = estado === "todos" || registro.estado === estado;
@@ -88,36 +46,26 @@ export default function SellerHistory() {
     return coincideNombre && coincideEstado && coincideFecha;
   });
 
+  // Llamada a la API para obtener la asistencia
+  useEffect(() => {
+    const getAttendance = async () => {
+      const response = await axios.get("http://localhost:3000/attendance/");
+      if (response.status === 200) {
+        setAssistencia(response.data);
+      }
+    };
+
+    getAttendance();
+  }, []);
+
+  console.log(assistencia);
+
+  const miFechayHora = new Date();
+  console.log(miFechayHora);
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Historial de Entrada y Salida</h1>
-
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <Input
-          type="text"
-          placeholder="Buscar empleado..."
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="flex-grow"
-        />
-        {/* <Select value={estado} onValueChange={setEstado}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos</SelectItem>
-            <SelectItem value="activo">Activo</SelectItem>
-            <SelectItem value="inactivo">Inactivo</SelectItem>
-          </SelectContent>
-        </Select> */}
-        <Input
-          type="date"
-          className="bg-slate-900 text-white"
-          selected={fechas} // Esto ahora es compatible con el componente Calendar
-          onSelect={(range) => setFechas(range)} // Actualiza el rango de fechas
-        />
-        {/* selected={fechas} onSelect={setFechas} */}
-      </div>
 
       <div className="overflow-x-auto">
         <Table>
@@ -128,53 +76,64 @@ export default function SellerHistory() {
               <TableHead>Entrada</TableHead>
               <TableHead>Salida</TableHead>
               <TableHead>Tiempo Total</TableHead>
-              {/* <TableHead>Estado</TableHead> */}
-              {/* <TableHead>Ubicación</TableHead> */}
               <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {historialFiltrado.map((registro) => (
               <TableRow key={registro.id}>
-                <TableCell>{registro.vendedor}</TableCell>
-                <TableCell>{registro.fecha}</TableCell>
-                <TableCell>{registro.checkIn}</TableCell>
-                <TableCell>{registro.checkOut || "En curso"}</TableCell>
-                <TableCell>{registro.tiempoTotal}</TableCell>
-                {/* <TableCell>
-                  <Badge
-                    variant={
-                      registro.estado === "activo" ? "default" : "secondary"
-                    }
-                  >
-                    {registro.estado}
-                  </Badge>
-                </TableCell> */}
-                {/* <TableCell>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    <span>{registro.ubicacionIn}</span>
-                  </div>
-                  {registro.ubicacionOut && (
-                    <div className="flex items-center gap-2 mt-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>{registro.ubicacionOut}</span>
-                    </div>
-                  )}
-                </TableCell> */}
+                {/* Nombre del empleado */}
+                <TableCell>{registro.usuario.nombre}</TableCell>
+
+                {/* Formatear la fecha de entrada */}
+                <TableCell>
+                  {format(new Date(registro.entrada), "dd MMMM yyyy", {
+                    locale: es,
+                  })}
+                </TableCell>
+
+                {/* Formatear la hora de entrada */}
+                <TableCell>
+                  {format(new Date(registro.entrada), "hh:mm a", {
+                    locale: es,
+                  })}
+                </TableCell>
+
+                {/* Formatear la hora de salida o mostrar "En curso" si es null */}
+                <TableCell>
+                  {registro.salida
+                    ? format(new Date(registro.salida), "hh:mm a", {
+                        locale: es,
+                      })
+                    : "En curso"}
+                </TableCell>
+
+                {/* Calcular y mostrar el tiempo total (diferencia entre salida y entrada) */}
+                <TableCell>
+                  {registro.salida
+                    ? `${Math.floor(
+                        differenceInMinutes(
+                          new Date(registro.salida),
+                          new Date(registro.entrada)
+                        ) / 60
+                      )}h ${
+                        differenceInMinutes(
+                          new Date(registro.salida),
+                          new Date(registro.entrada)
+                        ) % 60
+                      }m`
+                    : "En curso"}
+                </TableCell>
+
+                {/* Acciones (Ver detalles del empleado) */}
                 <TableCell>
                   <div className="flex gap-2">
-                    <Link to={"/empleados"}>
+                    <Link to={`/empleados/${registro.usuarioId}`}>
                       <Button variant="outline" size="sm">
                         <Eye className="w-4 h-4" />
                         <span className="sr-only">Ver detalles</span>
                       </Button>
                     </Link>
-
-                    {/* <Button variant="outline" size="sm">
-                      <MapPin className="w-4 h-4" />
-                      <span className="sr-only">Ver en mapa</span>
-                    </Button> */}
                   </div>
                 </TableCell>
               </TableRow>
@@ -192,5 +151,3 @@ export default function SellerHistory() {
     </div>
   );
 }
-
-// export default SellerHistory

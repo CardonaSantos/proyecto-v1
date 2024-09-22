@@ -43,16 +43,17 @@ model Ubicacion {
 }
 
 model Cliente {
-  id                 Int                 @id @default(autoincrement())
-  nombre             String
-  correo             String              @unique
-  telefono           String
-  direccion          String
-  ventas             Venta[]
-  citas              Cita[]
+  id                   Int                 @id @default(autoincrement())
+  nombre               String
+  correo               String              @unique
+  telefono             String
+  direccion            String
+  ventas               Venta[]
+  citas                Cita[]
   solicitudesDescuento SolicitudDescuento[]
-  creadoEn           DateTime            @default(now())
-  actualizadoEn      DateTime            @updatedAt
+  descuentos           Descuento[]         // Relación con los descuentos
+  creadoEn             DateTime            @default(now())
+  actualizadoEn        DateTime            @updatedAt
 }
 
 model Cita {
@@ -182,17 +183,33 @@ model VentaProducto {
 }
 
 
+model Descuento {
+  id          Int      @id @default(autoincrement())
+  porcentaje  Float    // Descuento en porcentaje (ej. 6.0 para un 6%)
+  cliente     Cliente  @relation(fields: [clienteId], references: [id])
+  clienteId   Int
+  activo      Boolean  @default(true) // Si el descuento está activo y puede ser aplicado
+  creadoEn    DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+}
 
 model SolicitudDescuento {
   id           Int      @id @default(autoincrement())
-  porcentaje   Float
-  estado       String   @default("pendiente")
+  porcentaje   Float    // Porcentaje solicitado
+  estado       EstadoSolicitud @default(PENDIENTE) // Establecer PENDIENTE como valor predeterminado
   vendedor     Usuario  @relation(fields: [usuarioId], references: [id])
   usuarioId    Int
   cliente      Cliente  @relation(fields: [clienteId], references: [id])
   clienteId    Int
   creadoEn     DateTime @default(now())
 }
+
 
 model Notificacion {
   id              Int      @id @default(autoincrement())
@@ -207,11 +224,14 @@ model Notificacion {
 
 model Asistencia {
   id              Int      @id @default(autoincrement())
+  fecha           DateTime // Agregando un campo para la fecha específica
   entrada         DateTime
-  salida          DateTime?
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  salida          DateTime? // Puede estar en null si aún no ha salido
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id])
   usuarioId       Int
+  creadoEn        DateTime  @default(now())
 }
+
 
 enum Rol {
   ADMIN

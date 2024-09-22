@@ -8,6 +8,9 @@ export class SaleService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createSale(createSaleDto: CreateSaleDto) {
+    console.log('los datos llegando son: ' + createSaleDto);
+    console.log();
+
     try {
       // Inicia una transacción
       return await this.prisma.$transaction(async (prisma) => {
@@ -72,6 +75,7 @@ export class SaleService {
             },
           });
         }
+        console.log('La venta hecha es: ', newSale);
 
         return newSale;
       });
