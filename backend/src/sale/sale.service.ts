@@ -44,11 +44,13 @@ export class SaleService {
         // Crear la venta y los productos relacionados
         const newSale = await prisma.venta.create({
           data: {
-            monto: createSaleDto.monto,
             citaId: createSaleDto.citaId,
             clienteId: createSaleDto.clienteId,
             usuarioId: createSaleDto.vendedorId,
-            descuento: createSaleDto.descuento, //nuevo para meter el descuento
+            descuento: createSaleDto.descuento || null, //nuevo para meter el descuento
+            metodoPago: createSaleDto.metodoPago, //ENUM
+            monto: createSaleDto.monto, //CAMPO PARA LA VENTA EN TOTAL SIN APLICAR EL DESUENTO
+            montoConDescuento: createSaleDto.montoConDescuento, //VENTA TOTAL APLICANDO EL DESCUENTO
             productos: {
               create: createSaleDto.productos.map((prod) => ({
                 producto: { connect: { id: prod.productoId } },

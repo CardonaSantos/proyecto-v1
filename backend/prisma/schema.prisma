@@ -159,8 +159,10 @@ model Proveedor {
 
 model Venta {
   id           Int      @id @default(autoincrement())
-  monto        Float
-  descuento     Int//NUEVO A APLICAR
+  monto        Float//EL TOTAL SIN EL DESCUENTO
+  montoConDescuento Float//EL TOTAL PERO CON EL DESCUENTO 
+  descuento    Int? //NUEVO A APLICAR |PUEDE SER OPCIONAL
+  metodoPago   MetodoPago// UN ENUM DE LOS METODOS DIPONIBLES
   timestamp    DateTime @default(now())
   vendedor     Usuario  @relation(fields: [usuarioId], references: [id])
   usuarioId    Int
@@ -236,4 +238,11 @@ model Asistencia {
 enum Rol {
   ADMIN
   VENDEDOR
+}
+
+
+enum MetodoPago {
+  CONTADO
+  TARJETA
+  TRANSFERENCIA_BANCO
 }

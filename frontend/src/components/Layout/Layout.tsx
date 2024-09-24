@@ -3,14 +3,10 @@
 import { useEffect, useState } from "react";
 import {
   Menu,
-  X,
   Home,
-  Info,
-  Mail,
   Bell,
   ChevronDown,
   User,
-  Settings,
   LogOut,
   User2,
   Users2Icon,
@@ -20,11 +16,11 @@ import {
   MessageSquareMore,
   ShoppingBasket,
   CirclePlus,
-  Pencil,
   SquareChartGanttIcon,
   PackageSearch,
   ShoppingBag,
   MailIcon,
+  BookmarkCheck,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
@@ -52,8 +48,19 @@ import {
 
 import logo from "../../assets/images/logo.png";
 import { jwtDecode } from "jwt-decode";
+import { useSocket } from "../../Context/SocketProvider ";
+
+const notifications = [
+  { id: 1, message: "New message received" },
+  { id: 2, message: "Your order has been shipped" },
+  { id: 3, message: "Payment successful" },
+];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const socket = useSocket(); // Hook que retorna la instancia del WebSocket
+  const [locationInterval, setLocationInterval] =
+    useState<NodeJS.Timeout | null>(null);
+
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = () => {
@@ -64,73 +71,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const menuItems = [
-    {
-      href: "/",
-      icon: Home,
-      label: "Home",
-    },
-    {
-      href: "/clientes",
-      icon: User2,
-      label: "Clientes",
-    },
-    {
-      href: "/ventas",
-      icon: HandCoins,
-      label: "Ventas",
-    },
-    {
-      href: "/usuarios",
-      icon: Users2Icon,
-      label: "Usuarios",
-    },
-    {
-      href: "/empleados",
-      icon: BookUser,
-      label: "Empleados",
-    },
-
-    {
-      href: "/historial-empleados-check",
-      icon: ListChecks,
-      label: "Check Empleados",
-    },
-    {
-      href: "/historial-citas",
-      icon: MessageSquareMore,
-      label: "Historial Citas",
-    },
-    {
-      label: "Productos",
-      icon: ShoppingBasket,
-      subItems: [
-        { href: "/ver-productos", label: "Ver productos", icon: Pencil },
-        {
-          href: "/crear-productos",
-          label: "Crear productos",
-          icon: CirclePlus,
-        },
-        {
-          href: "/asignar-stock",
-          label: "Inventario",
-          icon: SquareChartGanttIcon,
-        },
-      ],
-    },
-  ];
-
-  const notifications = [
-    { id: 1, message: "New message received" },
-    { id: 2, message: "Your order has been shipped" },
-    { id: 3, message: "Payment successful" },
-  ];
-
   interface UserTokenInfo {
     nombre: string;
     correo: string;
     rol: string;
     sub: number;
+  }
+
+  interface locationReceived {
+    latitud: number;
+    longitud: number;
+    usuarioId: number;
   }
 
   const [tokenUser, setTokenUser] = useState<UserTokenInfo | null>(null);
@@ -142,12 +93,52 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       try {
         const decodedToken = jwtDecode<UserTokenInfo>(token);
         setTokenUser(decodedToken);
-        console.log(decodedToken);
       } catch (error) {
         console.error("Error decoding token:", error);
       }
     }
-  }, []); // Solo se ejecuta una vez cuando el componente se monta
+  }, []);
+
+  const sendMyLocation = async () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude } = position.coords;
+
+        if (socket && tokenUser) {
+          const locationData = {
+            latitud: latitude,
+            longitud: longitude,
+            usuarioId: tokenUser.sub,
+          };
+
+          console.log("Enviando ubicación:", locationData);
+          socket.emit("sendLocation", locationData);
+        }
+      });
+    } else {
+      console.error("Geolocation no está disponible en este navegador.");
+    }
+  };
+
+  useEffect(() => {
+    if (socket && tokenUser) {
+      // Configurar intervalo para enviar la ubicación cada 30 segundos (30000ms)
+      const interval = setInterval(() => {
+        sendMyLocation();
+      }, 60000); // Cambia el valor según la frecuencia deseada (milisegundos)
+
+      setLocationInterval(interval);
+
+      // Limpiar el intervalo al desmontar el componente o al desconectar
+      return () => {
+        if (locationInterval) {
+          clearInterval(locationInterval);
+        }
+      };
+    }
+  }, [socket, tokenUser]);
+  // 60000
+  // 90000
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
@@ -168,13 +159,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <ul className="flex-1 space-y-1 p-4 overflow-y-auto">
             {/* Home Item */}
             <li>
-              <Link
-                to="/"
+              <a
+                href="/"
                 className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
               >
                 <Home className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                 <span>Home</span>
-              </Link>
+              </a>
             </li>
 
             {/* Clientes Item */}
@@ -253,6 +244,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </Link>
             </li>
 
+            <li>
+              <Link
+                to="/registrar-entrada-salida"
+                className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+              >
+                <BookmarkCheck className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                <span>Check</span>
+              </Link>
+            </li>
+
             {/* Productos Collapsible Section */}
             <Collapsible>
               <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-200 dark:bg-gray-800">
@@ -328,13 +329,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <ul className="flex-1 space-y-1 p-4 overflow-y-auto">
                   {/* Home Item */}
                   <li>
-                    <Link
-                      to="/"
+                    <a
+                      href="/"
                       className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
                     >
                       <Home className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                       <span>Home</span>
-                    </Link>
+                    </a>
                   </li>
 
                   {/* Clientes Item */}
@@ -410,6 +411,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     >
                       <ShoppingBag className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                       <span>Hacer venta</span>
+                    </Link>
+                  </li>
+
+                  <li>
+                    <Link
+                      to="/registrar-entrada-salida"
+                      className="flex items-center space-x-3 rounded-lg px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                    >
+                      <BookmarkCheck className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                      <span>Check</span>
                     </Link>
                   </li>
 

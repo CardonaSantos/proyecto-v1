@@ -10,24 +10,32 @@ import { PrismaService } from 'src/prisma.service';
 @Injectable()
 export class AttendanceService {
   constructor(private readonly prisma: PrismaService) {}
+
   async createCheckIn(createAttendanceDto: CreateAttendanceDto) {
     try {
-      //buscar el registro de hoy y actualizarlo
+      // Convertimos la fecha de hoy a formato "YYYY-MM-DD"
+      const today = new Date().toISOString().split('T')[0];
+
+      // Buscamos si ya existe un registro de entrada para el mismo usuario en la fecha de hoy
       const entradaDeHoy = await this.prisma.asistencia.findFirst({
         where: {
           usuarioId: createAttendanceDto.usuarioId,
-          fecha: new Date(new Date().setHours(0, 0, 0, 0)),
+          fecha: {
+            equals: today + 'T00:00:00.000Z', // Comparamos solo con la fecha
+          },
         },
       });
 
       if (entradaDeHoy) {
+        console.log('Ya hay una marca de entrada');
+
         throw new BadRequestException('Ya se ha marcado la entrada de hoy');
       }
 
-      //SOLO MARCAMOS LA ENTRADA
+      // SOLO MARCAMOS LA ENTRADA
       const nuevaAsistencia = await this.prisma.asistencia.create({
         data: {
-          fecha: createAttendanceDto.fecha,
+          fecha: today + 'T00:00:00.000Z', // Guardamos la fecha como "YYYY-MM-DDT00:00:00.000Z"
           entrada: createAttendanceDto.entrada,
           usuarioId: createAttendanceDto.usuarioId,
         },
@@ -80,18 +88,17 @@ export class AttendanceService {
 
   async findOne(id: number) {
     try {
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0); // Inicio del día
-      const endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999); // Fin del día
+      // Usamos sólo la fecha sin la hora para comparación
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Establecemos el inicio del día
 
       const AttendanceToday = await this.prisma.asistencia.findFirst({
         where: {
           usuarioId: id,
           fecha: {
-            gte: startOfDay, // Fecha mayor o igual al inicio del día
-            lte: endOfDay, // Fecha menor o igual al fin del día
+            equals: today.toISOString().split('T')[0] + 'T00:00:00.000Z', // Comparar solo con la fecha sin la hora
           },
+          salida: null,
         },
       });
 

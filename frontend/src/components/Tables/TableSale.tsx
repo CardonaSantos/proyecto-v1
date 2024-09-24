@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { Link } from "react-router-dom";
 
 interface SalesTypeProp {
   sales: SalesType;
@@ -40,17 +41,13 @@ const TableSale: React.FC<SalesTypeProp> = ({ sales }) => {
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
                   <span>Venta #{venta.id}</span>
-                  {/* <Badge
-                  variant={
-                    venta. === "Completada"
-                      ? "default"
-                      : venta.estado === "Pendiente"
-                      ? "outline"
-                      : "destructive"
-                  }
-                >
-                  {venta.estado}
-                </Badge> */}
+                  <a
+                    href={`/comprobante-venta/${venta.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Badge variant="destructive">Conseguir comprobante</Badge>
+                  </a>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -96,21 +93,31 @@ const TableSale: React.FC<SalesTypeProp> = ({ sales }) => {
                   </div>
 
                   <div className="flex justify-between items-center font-semibold">
-                    <span>Descuento:</span>
-                    <span>{venta.descuento} %</span>
+                    <span>Total con descuento:</span>
+                    <span>Q{venta.montoConDescuento.toFixed(2)}</span>
                   </div>
+
+                  <div className="flex justify-between items-center font-semibold">
+                    <span>Descuento:</span>
+                    <span>
+                      {venta.descuento ? `${venta.descuento}%` : "No se aplicó"}{" "}
+                    </span>
+                  </div>
+
                   <div>
                     <h3 className="font-semibold">Vendedor</h3>
                     <p>{venta.vendedor.nombre}</p>
                   </div>
+
                   <div>
                     <h3 className="font-semibold">Método de pago</h3>
-                    <p>{venta.id}</p>
+                    <p>{venta.metodoPago}</p>
                   </div>
-                  <div>
+
+                  {/* <div>
                     <h3 className="font-semibold">Notas</h3>
                     <p>{venta.id}</p>
-                  </div>
+                  </div> */}
                 </div>
               </CardContent>
             </Card>

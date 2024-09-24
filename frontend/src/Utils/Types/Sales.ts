@@ -1,6 +1,8 @@
 export interface Venta {
   id: number;
   monto: number;
+  metodoPago: MetodoPago;
+  montoConDescuento: number;
   descuento: number;
   timestamp: string;
   usuarioId: number;
@@ -48,6 +50,12 @@ interface Vendedor {
   rol: string;
   creadoEn: string;
   actualizadoEn: string;
+}
+
+enum MetodoPago {
+  CONTADO,
+  TARJETA,
+  TRANSFERENCIA_BANCO,
 }
 
 export type SalesType = Venta[];

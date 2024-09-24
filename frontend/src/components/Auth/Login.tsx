@@ -64,7 +64,7 @@ export default function Login() {
       if (response.status === 201) {
         localStorage.setItem("authToken", response.data.authToken);
         toast.success("Usuario logueado");
-        navigate("/dashboard");
+        window.location.href = "/dashboard";
       }
     } catch (error) {
       console.log(error);

@@ -1,7 +1,9 @@
 import {
   IsArray,
+  IsEnum,
   IsIn,
   IsInt,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsPositive,
@@ -10,6 +12,7 @@ import {
 } from 'class-validator';
 
 import { Type } from 'class-transformer';
+import { MetodoPago } from '@prisma/client';
 
 class ProductSaleDto {
   @IsInt()
@@ -46,4 +49,12 @@ export class CreateSaleDto {
   @IsOptional()
   @IsInt()
   citaId?: number; // Opcional si está asociado a una cita
+
+  @IsNotEmpty()
+  @IsEnum(MetodoPago) // Enum validado
+  metodoPago: MetodoPago;
+
+  @IsPositive()
+  @IsNotEmpty()
+  montoConDescuento: number;
 }

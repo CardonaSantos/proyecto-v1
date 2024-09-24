@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Bell,
   Search,
@@ -31,38 +31,27 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../components/ui/dialog";
+
 import MyLeafletMap from "../components/Map/Map";
 import { Badge } from "../components/ui/badge";
 import { Link } from "react-router-dom";
 
 import { jwtDecode } from "jwt-decode";
+import { useSocket } from "../Context/SocketProvider ";
+
+interface connectedUser {
+  totalConnectedUsers: number;
+  totalEmployees: number;
+  totalAdmins: number;
+}
+
+interface locationReceived {
+  latitud: number;
+  longitud: number;
+  usuarioId: number;
+}
 
 export default function Dashboard() {
-  const [showNotifications, setShowNotifications] = useState(false);
-  // Datos de ejemplo para las ubicaciones
-  const locations = [
-    { lat: 15.6646, lng: -91.7121, name: "Alberto Jesús" }, // Ejemplo de empleado
-    { lat: 15.6684, lng: -91.7104, name: "Mari Mileidy" },
-    { lat: 15.6653, lng: -91.70697, name: "Elizabeth R." },
-    { lat: 15.6611, lng: -91.7052, name: "Fernanda M." },
-    { lat: 15.6532, lng: -91.7697, name: "Carlos Ed." },
-    { lat: 15.6549, lng: -91.7727, name: "Faustina" },
-  ];
-
   const employeesData = [
     {
       id: 1,
@@ -132,7 +121,51 @@ export default function Dashboard() {
     },
   ];
 
-  // const token = localStorage.getItem("authToken");
+  const socket = useSocket();
+  const [connectedUsers, setConnectedUsers] = useState<connectedUser>();
+
+  useEffect(() => {
+    if (socket) {
+      socket.emit("requestConnectedUsers");
+
+      const updateListener = (data) => {
+        console.log("Datos recibidos del WebSocket:", data);
+        setConnectedUsers(data);
+      };
+
+      socket.on("updateConnectedUsers", updateListener);
+
+      return () => {
+        socket.off("updateConnectedUsers", updateListener);
+      };
+    }
+  }, [socket]);
+
+  console.log("Los usuarios conectados son: ", connectedUsers);
+  console.log(connectedUsers?.totalConnectedUsers);
+
+  console.log("--------------------------------------------------");
+
+  const [locations, setLocations] = useState<locationReceived[]>([]);
+
+  useEffect(() => {
+    if (socket) {
+      const locationListener = (locationData: locationReceived) => {
+        console.log("Nueva ubicación recibida:", locationData);
+        // Aquí puedes actualizar el estado con la nueva ubicación
+        // Por ejemplo, si tienes un estado para guardar las localizaciones:
+        setLocations((prevLocations) => [...prevLocations, locationData]);
+      };
+
+      // Escuchar el evento de recepción de ubicación
+      socket.on("receiveLocation", locationListener);
+
+      return () => {
+        // Limpiar el listener al desmontar el componente
+        socket.off("receiveLocation", locationListener);
+      };
+    }
+  }, [socket]);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
@@ -143,27 +176,6 @@ export default function Dashboard() {
             <h1 className="text-2xl font-bold m-3 text-gray-900 dark:text-white">
               Dashboard
             </h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            {/* <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="Buscar"
-                className="pl-10 w-full md:w-64"
-              />
-            </div> */}
-            <Dialog
-              open={showNotifications}
-              onOpenChange={setShowNotifications}
-            >
-              {/* <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Bell className="h-5 w-5" />
-                  <span className="sr-only">Notificaciones</span>
-                </Button>
-              </DialogTrigger> */}
-            </Dialog>
           </div>
         </div>
       </header>
@@ -202,7 +214,11 @@ export default function Dashboard() {
               <User2Icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">
+                {connectedUsers
+                  ? connectedUsers.totalConnectedUsers
+                  : "Cargando..."}
+              </div>
             </CardContent>
           </Card>
 
@@ -343,7 +359,7 @@ export default function Dashboard() {
             <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-lg mb-4 relative overflow-hidden">
               {/* Placeholder for map */}
               <div className="h-full flex items-center justify-center text-gray-500 dark:text-gray-400">
-                <MyLeafletMap locations={employeesData} />
+                <MyLeafletMap locations={locations} />
               </div>
             </div>
             <Table>
@@ -397,32 +413,6 @@ export default function Dashboard() {
             </Table>
           </CardContent>
         </Card>
-
-        {/* User Management Section */}
-
-        {/* Reports Section */}
-        {/* <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Reportes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <Input type="date" className="w-auto" />
-                <Input type="date" className="w-auto" />
-                <Button>Generar reporte</Button>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button variant="outline">
-                  <FileText className="mr-2 h-4 w-4" /> Exportar CSV
-                </Button>
-                <Button variant="outline">
-                  <FileText className="mr-2 h-4 w-4" /> Exportar PDF
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card> */}
       </main>
 
       {/* Footer */}

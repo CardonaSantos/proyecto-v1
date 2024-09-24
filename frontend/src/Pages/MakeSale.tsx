@@ -95,6 +95,8 @@ export default function MakeSale() {
   // Estados
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
+  const [selectedMetodPago, setSelectedMetodPago] = useState("CONTADO");
+
   const [products, setProducts] = useState<Producto[]>([]);
   const [cart, setCart] = useState<(Producto & { quantity: number })[]>([]); // Agregamos `quantity` al estado del carrito
   const [selectedCustomer, setSelectedCustomer] = useState<Cliente | null>(
@@ -199,7 +201,7 @@ export default function MakeSale() {
     );
   };
 
-  // Calcular total
+  // Calcular total con descuento
   const calculateTotalConDescuento = () => {
     const subtotal = cart.reduce(
       (total, item) => total + item.precio * item.quantity,
@@ -208,7 +210,7 @@ export default function MakeSale() {
     const discountPercentage = selectedDiscount
       ? selectedDiscount.porcentaje / 100
       : 0;
-    return (subtotal * (1 - discountPercentage)).toFixed(2);
+    return Number((subtotal * (1 - discountPercentage)).toFixed(2));
   };
 
   const calculateTotal = () => {
@@ -252,6 +254,8 @@ export default function MakeSale() {
         (total, item) => total + item.precio * item.quantity,
         0
       ), // Sumar el monto total
+      montoConDescuento: calculateTotalConDescuento(),
+      metodoPago: selectedMetodPago,
       descuento: selectedDiscount?.porcentaje, // Ajusta esto según tu lógica
       clienteId: selectedCustomer?.id, // Supongo que esto vendrá de algún lado, ajusta si es necesario
       vendedorId: 17, // También ajusta según tu contexto
@@ -274,10 +278,13 @@ export default function MakeSale() {
     // Verifica que los campos requeridos estén completos
     if (
       !formateado.clienteId ||
-      typeof formateado.descuento === "undefined" || // Verifica si existe el descuento
+      // typeof formateado.descuento === "undefined" || // Verifica si existe el descuento
       typeof formateado.monto === "undefined" || // Verifica si existe el monto
       !formateado.productos ||
-      !formateado.vendedorId
+      !formateado.vendedorId ||
+      !formateado.montoConDescuento ||
+      !formateado.metodoPago
+      // !formateado.
     ) {
       toast.info("Faltan campos sin llenar");
       return;
@@ -329,17 +336,12 @@ export default function MakeSale() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Todas">Todas</SelectItem>
-
                     {categoria &&
                       categoria.map((category) => (
                         <SelectItem value={category.nombre}>
                           {category.nombre}
                         </SelectItem>
                       ))}
-                    {/* <SelectItem value="Todas">Todas</SelectItem>
-                    <SelectItem value="Camisetas">Camisetas</SelectItem>
-                    <SelectItem value="Pantalones">Pantalones</SelectItem>
-                    <SelectItem value="Vestidos">Vestidos</SelectItem> */}
                   </SelectContent>
                 </Select>
               </CardContent>
@@ -412,15 +414,19 @@ export default function MakeSale() {
                       <p className="font-semibold ">
                         Total con descuento: Q{calculateTotalConDescuento()}
                       </p>
-                      <p className="font-semibold ">
+                      <p className="font-semibold">
                         Descuento:{" "}
                         {selectedDiscount
-                          ? selectedDiscount?.porcentaje
+                          ? `${selectedDiscount.porcentaje}%`
                           : "Descuento no seleccionado"}
-                        %
                       </p>
+
                       <p className="font-semibold ">
                         Cliente: {selectedCustomer?.nombre}
+                      </p>
+
+                      <p className="font-semibold ">
+                        Metodo de pago: {selectedMetodPago}
                       </p>
                     </div>
                     <div className="flex gap-4">
@@ -447,9 +453,10 @@ export default function MakeSale() {
               {/* Selección de Cliente */}
               <Card className="mb-8">
                 <CardContent>
-                  <h3 className="text-md font-semibold mb-4">
+                  <h3 className="text-md font-semibold mb-4 pt-2">
                     Selección de Cliente
                   </h3>
+
                   <Select
                     value={selectedCustomer?.id?.toString() || ""}
                     onValueChange={(value) => {
@@ -515,11 +522,36 @@ export default function MakeSale() {
                 </CardContent>
               </Card>
             </div>
+            <div className="mb-8">
+              <Card>
+                <CardContent>
+                  <h3 className="text-md font-semibold mb-4 pt-2">
+                    Metódo de pago
+                  </h3>
+                  {/* SELECT PARA EL METODO DE PAGO */}
+                  <Select
+                    value={selectedMetodPago}
+                    onValueChange={setSelectedMetodPago}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="CONTADO" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CONTADO">CONTADO</SelectItem>
+                      <SelectItem value="TARJETA">TARJETA</SelectItem>
+                      <SelectItem value="TRANSFERENCIA_BANCO">
+                        TRANSFERENCIA BANCARIA
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </CardContent>
+              </Card>
+            </div>
 
             <div className="">
               <Card className="mb-8">
                 <CardContent>
-                  <h3 className="text-md font-semibold mb-4">
+                  <h3 className="text-md font-semibold mb-4 pt-2">
                     Solicitar Descuento
                   </h3>
                   <div className="flex items-center mb-4">
@@ -549,8 +581,6 @@ export default function MakeSale() {
 
             {/* Productos filtrados */}
             <ScrollArea className="h-[500px]">
-              {" "}
-              {/* Ajusta la altura según sea necesario */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredProducts.map((product) => (
                   <Card key={product.id}>
